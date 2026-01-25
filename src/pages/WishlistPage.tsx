@@ -114,6 +114,7 @@ export const WishlistPage = () => {
                   <img
                     src={product.image_url}
                     alt={product.name}
+                    loading="lazy"
                     className="w-full h-48 object-cover rounded-lg mb-4 group-hover:scale-105 transition-transform"
                     onError={(e) => {
                       e.currentTarget.src = 'https://via.placeholder.com/400x300?text=Product+Image';
@@ -143,8 +144,8 @@ export const WishlistPage = () => {
                     onClick={() => handleAddToCart(product)}
                     disabled={product.stock === 0}
                     className={`btn flex items-center gap-2 ${addedProducts.has(product.id)
-                        ? 'bg-green-600 text-white hover:bg-green-700'
-                        : 'btn-primary'
+                      ? 'bg-green-600 text-white hover:bg-green-700'
+                      : 'btn-primary'
                       } ${product.stock === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     {addedProducts.has(product.id) ? (

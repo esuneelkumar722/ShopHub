@@ -5,6 +5,8 @@ import type { Product, ProductFilters } from '../types';
 import { supabase } from '../lib/supabase';
 import { useCartStore } from '../store/cartStore';
 import { useUserStore } from '../store/userStore';
+import { useDebounce } from '../hooks/useDebounce';
+import { ProductCardSkeleton } from '../components/skeleton/ProductCardSkeleton';
 import { ShoppingCart, Check, ChevronLeft, ChevronRight, Heart } from 'lucide-react';
 
 const ITEMS_PER_PAGE = 12;
@@ -20,6 +22,9 @@ export const ProductsPage = () => {
   const addItem = useCartStore((state) => state.addItem);
   const user = useUserStore((state) => state.user);
   const queryClient = useQueryClient();
+
+  // Debounced search value (500ms delay)
+  const debouncedSearch = useDebounce(filters.search, 500);
 
   // Fetch wishlist items
   const { data: wishlistItems } = useQuery({
@@ -42,7 +47,7 @@ export const ProductsPage = () => {
     mutationFn: async (productId: string) => {
       if (!user) return;
       const isInWishlist = wishlistItems?.includes(productId);
-      
+
       if (isInWishlist) {
         const { error } = await (supabase as any)
           .from('wishlist')
@@ -60,19 +65,19 @@ export const ProductsPage = () => {
     onMutate: async (productId) => {
       // Cancel outgoing refetches
       await queryClient.cancelQueries({ queryKey: ['wishlist'] });
-      
+
       // Get current data
       const previousWishlist = queryClient.getQueryData(['wishlist']);
-      
+
       // Optimistically update
       queryClient.setQueryData(['wishlist'], (old: string[] | undefined) => {
         if (!old) return [productId];
         const isInWishlist = old.includes(productId);
-        return isInWishlist 
+        return isInWishlist
           ? old.filter(id => id !== productId)
           : [...old, productId];
       });
-      
+
       return { previousWishlist };
     },
     onError: (_err, _productId, context) => {
@@ -115,7 +120,7 @@ export const ProductsPage = () => {
 
   // SERVER-SIDE PAGINATION: Fetch only products for current page
   const { data: productsData, isLoading, error } = useQuery({
-    queryKey: ['products', filters, currentPage],
+    queryKey: ['products', debouncedSearch, filters.category, filters.sortBy, currentPage],
     queryFn: async () => {
       // Calculate range for current page
       const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -130,9 +135,9 @@ export const ProductsPage = () => {
         query = query.eq('category', filters.category);
       }
 
-      // Apply search filter
-      if (filters.search) {
-        query = query.ilike('name', `%${filters.search}%`);
+      // Apply search filter (use debounced value)
+      if (debouncedSearch) {
+        query = query.ilike('name', `%${debouncedSearch}%`);
       }
 
       // Apply sorting
@@ -156,7 +161,7 @@ export const ProductsPage = () => {
 
       const { data, error, count } = await query;
       if (error) throw error;
-      
+
       return {
         products: data as Product[],
         totalCount: count || 0
@@ -239,10 +244,12 @@ export const ProductsPage = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {isLoading ? (
-          <div className="col-span-full text-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading products...</p>
-          </div>
+          // Show skeleton loaders instead of spinner
+          <>
+            {[...Array(12)].map((_, index) => (
+              <ProductCardSkeleton key={index} />
+            ))}
+          </>
         ) : products?.length === 0 ? (
           <div className="col-span-full text-center py-12 text-gray-500">
             No products found
@@ -257,11 +264,10 @@ export const ProductsPage = () => {
                   title={wishlistItems?.includes(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
                 >
                   <Heart
-                    className={`w-5 h-5 ${
-                      wishlistItems?.includes(product.id)
+                    className={`w-5 h-5 ${wishlistItems?.includes(product.id)
                         ? 'fill-red-500 text-red-500'
                         : 'text-gray-400'
-                    }`}
+                      }`}
                   />
                 </button>
               )}
@@ -269,6 +275,7 @@ export const ProductsPage = () => {
                 <img
                   src={product.image_url}
                   alt={product.name}
+                  loading="lazy"
                   className="w-full h-48 object-cover rounded-lg mb-4 group-hover:scale-105 transition-transform"
                   onError={(e) => {
                     e.currentTarget.src = 'https://via.placeholder.com/400x300?text=Product+Image';
@@ -357,8 +364,8 @@ export const ProductsPage = () => {
                   key={page}
                   onClick={() => goToPage(page)}
                   className={`px-4 py-2 rounded-lg ${currentPage === page
-                      ? 'bg-primary-600 text-white'
-                      : 'border border-gray-300 hover:bg-gray-50'
+                    ? 'bg-primary-600 text-white'
+                    : 'border border-gray-300 hover:bg-gray-50'
                     }`}
                 >
                   {page}

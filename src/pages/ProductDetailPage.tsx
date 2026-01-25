@@ -3,6 +3,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import type { Product, Review } from '../types';
 import { useCartStore } from '../store/cartStore';
+import { ProductDetailSkeleton } from '../components/skeleton/ProductDetailSkeleton';
+import { ProductRecommendations } from '../components/ProductRecommendations';
 import { ShoppingCart, ArrowLeft, Star, Check, Trash2, Edit2, Heart } from 'lucide-react';
 import { useState } from 'react';
 import { useUserStore } from '../store/userStore';
@@ -197,12 +199,7 @@ export const ProductDetailPage = () => {
   const userReview = reviews?.find((r) => r.user_id === user?.id);
 
   if (isLoading) {
-    return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-        <p className="mt-4 text-gray-600">Loading product...</p>
-      </div>
-    );
+    return <ProductDetailSkeleton />;
   }
 
   if (!product) {
@@ -232,6 +229,7 @@ export const ProductDetailPage = () => {
           <img
             src={product.image_url}
             alt={product.name}
+            loading="lazy"
             className="w-full rounded-2xl shadow-lg"
             onError={(e) => {
               e.currentTarget.src = 'https://via.placeholder.com/600x600?text=Product+Image';
@@ -491,6 +489,12 @@ export const ProductDetailPage = () => {
           )}
         </div>
       </div>
+
+      {/* Product Recommendations */}
+      <ProductRecommendations
+        currentProductId={product.id}
+        category={product.category}
+      />
     </div>
   );
 };
