@@ -71,7 +71,11 @@ export const ProductDetailPage = () => {
         .eq('product_id', id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        // Silently return empty array if reviews table doesn't exist
+        console.warn('Reviews table not available:', error.message);
+        return [];
+      }
       return data as Review[];
     }
   });
