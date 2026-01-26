@@ -7,7 +7,8 @@ import { useCartStore } from '../store/cartStore';
 import { useUserStore } from '../store/userStore';
 import { useDebounce } from '../hooks/useDebounce';
 import { ProductCardSkeleton } from '../components/skeleton/ProductCardSkeleton';
-import { ShoppingCart, Check, ChevronLeft, ChevronRight, Heart } from 'lucide-react';
+import { ProductQuickView } from '../components/product/ProductQuickView';
+import { ShoppingCart, Check, ChevronLeft, ChevronRight, Heart, Eye } from 'lucide-react';
 
 const ITEMS_PER_PAGE = 12;
 
@@ -19,6 +20,7 @@ export const ProductsPage = () => {
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [addedProducts, setAddedProducts] = useState<Set<string>>(new Set());
+  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const addItem = useCartStore((state) => state.addItem);
   const user = useUserStore((state) => state.user);
   const queryClient = useQueryClient();
@@ -256,21 +258,33 @@ export const ProductsPage = () => {
           </div>
         ) : (
           products?.map((product) => (
-            <div key={product.id} className="card hover:shadow-lg transition-shadow group relative">
+            <div key={product.id} className="card hover:shadow-lg transition-shadow group relative dark:bg-gray-800">
               {user && (
                 <button
                   onClick={() => toggleWishlist.mutate(product.id)}
-                  className="absolute top-3 right-3 p-2 bg-white rounded-full shadow-md hover:scale-110 transition-transform z-10"
+                  className="absolute top-3 right-3 p-2 bg-white dark:bg-gray-700 rounded-full shadow-md hover:scale-110 transition-transform z-10"
                   title={wishlistItems?.includes(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
+                  aria-label={wishlistItems?.includes(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
                 >
                   <Heart
                     className={`w-5 h-5 ${wishlistItems?.includes(product.id)
-                        ? 'fill-red-500 text-red-500'
-                        : 'text-gray-400'
+                      ? 'fill-red-500 text-red-500'
+                      : 'text-gray-400 dark:text-gray-300'
                       }`}
                   />
                 </button>
               )}
+
+              {/* Quick View Button */}
+              <button
+                onClick={() => setQuickViewProduct(product)}
+                className="absolute top-3 left-3 p-2 bg-white dark:bg-gray-700 rounded-full shadow-md hover:scale-110 transition-transform opacity-0 group-hover:opacity-100 z-10"
+                title="Quick view"
+                aria-label="Quick view product"
+              >
+                <Eye className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+              </button>
+
               <Link to={`/products/${product.id}`}>
                 <img
                   src={product.image_url}
@@ -283,28 +297,29 @@ export const ProductsPage = () => {
                 />
               </Link>
               <Link to={`/products/${product.id}`}>
-                <h3 className="font-semibold mb-2 line-clamp-2 group-hover:text-primary-600 transition-colors">
+                <h3 className="font-semibold mb-2 line-clamp-2 group-hover:text-primary-600 dark:text-white dark:group-hover:text-primary-400 transition-colors">
                   {product.name}
                 </h3>
               </Link>
-              <p className="text-gray-600 text-sm mb-2 line-clamp-2">{product.description}</p>
+              <p className="text-gray-600 dark:text-gray-300 text-sm mb-2 line-clamp-2">{product.description}</p>
               <div className="flex items-center gap-2 mb-3">
                 <div className="flex items-center">
                   <span className="text-yellow-500">★</span>
-                  <span className="text-sm ml-1">{product.rating}</span>
+                  <span className="text-sm ml-1 dark:text-gray-200">{product.rating}</span>
                 </div>
-                <span className="text-sm text-gray-500">({product.reviews_count})</span>
+                <span className="text-sm text-gray-500 dark:text-gray-400">({product.reviews_count})</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-xl font-bold text-primary-600">
+                <span className="text-xl font-bold text-primary-600 dark:text-primary-400">
                   ${product.price.toFixed(2)}
                 </span>
                 <button
-                  className={`btn flex items-center gap-2 transition-all ${addedProducts.has(product.id)
+                  className={`btn flex items-center gap-2 transition-all focus-visible ${addedProducts.has(product.id)
                     ? 'bg-green-600 text-white hover:bg-green-700'
                     : 'btn-primary'
                     }`}
                   onClick={() => handleAddToCart(product)}
+                  aria-label={`Add ${product.name} to cart`}
                 >
                   {addedProducts.has(product.id) ? (
                     <>
@@ -323,6 +338,13 @@ export const ProductsPage = () => {
           ))
         )}
       </div>
+
+      {/* Quick View Modal */}
+      <ProductQuickView
+        product={quickViewProduct}
+        isOpen={quickViewProduct !== null}
+        onClose={() => setQuickViewProduct(null)}
+      />
 
       {/* Pagination */}
       {!isLoading && !error && totalPages > 1 && (

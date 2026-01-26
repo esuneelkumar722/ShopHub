@@ -1,13 +1,16 @@
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
-import type { Product, Review } from '../types';
+import type { Product, Review, ProductImage } from '../types';
 import { useCartStore } from '../store/cartStore';
 import { ProductDetailSkeleton } from '../components/skeleton/ProductDetailSkeleton';
 import { ProductRecommendations } from '../components/ProductRecommendations';
+import { ImageGallery } from '../components/product/ImageGallery';
+import { AddToCartButton } from '../components/cart/AddToCartButton';
 import { ShoppingCart, ArrowLeft, Star, Check, Trash2, Edit2, Heart } from 'lucide-react';
 import { useState } from 'react';
 import { useUserStore } from '../store/userStore';
+import { toast } from 'sonner';
 
 export const ProductDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -32,6 +35,22 @@ export const ProductDetailPage = () => {
 
       if (error) throw error;
       return data as Product;
+    }
+  });
+
+  // Fetch product images
+  const { data: productImages = [] } = useQuery({
+    queryKey: ['product-images', id],
+    queryFn: async () => {
+      if (!id) return [];
+      const { data, error } = await supabase
+        .from('product_images')
+        .select('*')
+        .eq('product_id', id)
+        .order('display_order', { ascending: true });
+
+      if (error) return [];
+      return data as ProductImage[];
     }
   });
 
@@ -172,6 +191,7 @@ export const ProductDetailPage = () => {
   const handleAddToCart = () => {
     if (product) {
       addItem(product);
+      toast.success(`${product.name} added to cart!`);
       setAdded(true);
       setTimeout(() => setAdded(false), 2000);
     }
@@ -217,24 +237,32 @@ export const ProductDetailPage = () => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <button
         onClick={() => navigate(-1)}
-        className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6"
+        className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-6 focus-visible"
+        aria-label="Go back"
       >
         <ArrowLeft className="w-5 h-5" />
         Back
       </button>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-        {/* Product Image */}
+        {/* Product Image Gallery */}
         <div>
-          <img
-            src={product.image_url}
-            alt={product.name}
-            loading="lazy"
-            className="w-full rounded-2xl shadow-lg"
-            onError={(e) => {
-              e.currentTarget.src = 'https://via.placeholder.com/600x600?text=Product+Image';
-            }}
-          />
+          {productImages.length > 0 ? (
+            <ImageGallery
+              images={[product.image_url, ...productImages.map(img => img.image_url)]}
+              productName={product.name}
+            />
+          ) : (
+            <img
+              src={product.image_url}
+              alt={product.name}
+              loading="lazy"
+              className="w-full rounded-2xl shadow-lg"
+              onError={(e) => {
+                e.currentTarget.src = 'https://via.placeholder.com/600x600?text=Product+Image';
+              }}
+            />
+          )}
         </div>
 
         {/* Product Info */}
@@ -281,10 +309,10 @@ export const ProductDetailPage = () => {
           </div>
 
           <div className="flex gap-4">
-            <button
+            <AddToCartButton
               onClick={handleAddToCart}
               disabled={product.stock === 0}
-              className={`flex-1 py-4 rounded-lg font-semibold text-lg flex items-center justify-center gap-3 transition-all ${added
+              className={`flex-1 py-4 rounded-lg font-semibold text-lg flex items-center justify-center gap-3 transition-all focus-visible ${added
                 ? 'bg-green-600 text-white hover:bg-green-700'
                 : product.stock > 0
                   ? 'bg-primary-600 text-white hover:bg-primary-700'
@@ -302,13 +330,13 @@ export const ProductDetailPage = () => {
                   Add to Cart
                 </>
               )}
-            </button>
+            </AddToCartButton>
 
             {user && (
               <button
                 onClick={() => product && toggleWishlist.mutate(product.id)}
-                className="p-4 rounded-lg border-2 border-gray-300 hover:border-red-400 transition-all hover:scale-110"
-                title={wishlistItems?.includes(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
+                className="p-4 rounded-lg border-2 border-gray-300 dark:border-gray-600 hover:border-red-400 dark:hover:border-red-400 transition-all hover:scale-110 focus-visible"
+                aria-label={wishlistItems?.includes(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
               >
                 <Heart
                   className={`w-6 h-6 ${wishlistItems?.includes(product.id)

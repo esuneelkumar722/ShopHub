@@ -7,8 +7,14 @@ import { useCartStore } from '../store/cartStore';
 import { useUserStore } from '../store/userStore';
 import { supabase } from '../lib/supabase';
 import { CreditCard, Truck, CheckCircle } from 'lucide-react';
+import { DiscountCodeInput } from '../components/cart/DiscountCodeInput';
+import { StripePaymentForm } from '../components/payment/StripePaymentForm';
+import { Elements } from '@stripe/react-stripe-js';
+import { getStripe } from '../lib/stripe';
+import type { DiscountCode } from '../types';
+import { toast } from 'sonner';
 
-// Validation schema - defines what's required and format rules
+// Validation schema - shipping info only (payment handled by Stripe)
 const checkoutSchema = z.object({
   // Shipping Info
   fullName: z.string().min(2, 'Name must be at least 2 characters'),
@@ -17,12 +23,6 @@ const checkoutSchema = z.object({
   address: z.string().min(10, 'Address must be at least 10 characters'),
   city: z.string().min(2, 'City is required'),
   zipCode: z.string().regex(/^\d{5}$/, 'ZIP code must be 5 digits'),
-
-  // Payment Info
-  cardNumber: z.string().regex(/^\d{16}$/, 'Card number must be 16 digits'),
-  cardName: z.string().min(2, 'Name on card is required'),
-  expiryDate: z.string().regex(/^(0[1-9]|1[0-2])\/\d{2}$/, 'Format: MM/YY'),
-  cvv: z.string().regex(/^\d{3}$/, 'CVV must be 3 digits'),
 });
 
 type CheckoutForm = z.infer<typeof checkoutSchema>;
@@ -30,6 +30,8 @@ type CheckoutForm = z.infer<typeof checkoutSchema>;
 export const CheckoutPage = () => {
   const [step, setStep] = useState(1); // 1=Shipping, 2=Payment, 3=Review
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [appliedDiscount, setAppliedDiscount] = useState<DiscountCode | null>(null);
+  const [discountAmount, setDiscountAmount] = useState(0);
   const navigate = useNavigate();
 
   const { items, getTotalPrice, clearCart } = useCartStore();
@@ -59,17 +61,22 @@ export const CheckoutPage = () => {
 
   // Move to next step after validating current step fields
   const handleNextStep = async () => {
-    let fieldsToValidate: (keyof CheckoutForm)[] = [];
-
     if (step === 1) {
-      fieldsToValidate = ['fullName', 'email', 'phone', 'address', 'city', 'zipCode'];
+      const fieldsToValidate: (keyof CheckoutForm)[] = ['fullName', 'email', 'phone', 'address', 'city', 'zipCode'];
+      const isValid = await trigger(fieldsToValidate);
+      if (isValid) setStep(step + 1);
     } else if (step === 2) {
-      fieldsToValidate = ['cardNumber', 'cardName', 'expiryDate', 'cvv'];
+      // Step 2 is now Stripe payment, just move to review
+      setStep(step + 1);
     }
-
-    const isValid = await trigger(fieldsToValidate);
-    if (isValid) setStep(step + 1);
   };
+
+  // Calculate totals with discount
+  const subtotal = getTotalPrice();
+  const shipping = 10;
+  const taxRate = 0.08;
+  const tax = (subtotal - discountAmount) * taxRate;
+  const total = subtotal + shipping + tax - discountAmount;
 
   // Final submission - save order to database
   const onSubmit = async (_formData: CheckoutForm) => {
@@ -81,7 +88,7 @@ export const CheckoutPage = () => {
         .from('orders')
         .insert({
           user_id: user?.id,
-          total: getTotalPrice() + 10, // +$10 shipping
+          total: total,
           status: 'pending',
         } as any)
         .select()
@@ -89,39 +96,52 @@ export const CheckoutPage = () => {
 
       if (orderError) throw orderError;
 
-      // Create order items
+      // Create order items - use product.id to ensure correct reference
       const orderItems = items.map(item => ({
         order_id: (order as any).id,
-        product_id: item.product_id,
+        product_id: item.product.id, // Use item.product.id instead of item.product_id
         quantity: item.quantity,
         price: item.product.price,
       }));
+
+      console.log('Order items to insert:', orderItems); // Debug log
 
       const { error: itemsError } = await supabase
         .from('order_items')
         .insert(orderItems as any);
 
-      if (itemsError) throw itemsError;
+      if (itemsError) {
+        console.error('Failed to insert order items:', itemsError);
+        throw itemsError;
+      }
+
+      // Save discount if applied
+      if (appliedDiscount) {
+        const { error: discountError } = await supabase
+          .from('order_discounts')
+          .insert({
+            order_id: (order as any).id,
+            discount_code_id: appliedDiscount.id,
+            discount_amount: discountAmount,
+          } as any);
+
+        if (discountError) console.error('Failed to save discount:', discountError);
+      }
 
       // Success! Clear cart and redirect
       clearCart();
+      toast.success('Order placed successfully!');
       navigate('/orders');
-      alert('Order placed successfully!');
     } catch (error: any) {
       console.error('Checkout error:', error);
-      alert('Failed to place order: ' + error.message);
+      toast.error('Failed to place order: ' + error.message);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const totalPrice = getTotalPrice();
-  const shipping = 10;
-  const tax = totalPrice * 0.08;
-  const finalTotal = totalPrice + shipping + tax;
-
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 dark:bg-gray-900 dark:text-white">
       <h1 className="text-3xl font-bold mb-8">Checkout</h1>
 
       {/* Progress Steps */}
@@ -151,9 +171,9 @@ export const CheckoutPage = () => {
         ))}
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)}>
-        {/* Step 1: Shipping Information */}
-        {step === 1 && (
+      {/* Step 1: Shipping Information */}
+      {step === 1 && (
+        <form onSubmit={(e) => { e.preventDefault(); handleNextStep(); }}>
           <div className="card space-y-4">
             <h2 className="text-2xl font-bold mb-4">Shipping Information</h2>
 
@@ -197,55 +217,30 @@ export const CheckoutPage = () => {
               </div>
             </div>
 
-            <button type="button" onClick={handleNextStep} className="btn btn-primary w-full">
+            <button type="submit" className="btn btn-primary w-full">
               Continue to Payment
             </button>
           </div>
-        )}
+        </form>
+      )}
 
-        {/* Step 2: Payment Information */}
-        {step === 2 && (
-          <div className="card space-y-4">
-            <h2 className="text-2xl font-bold mb-4">Payment Information</h2>
+      {/* Step 2: Payment Information - Separate form, not nested */}
+      {step === 2 && (
+        <Elements stripe={getStripe()}>
+          <StripePaymentForm
+            amount={total}
+            onSuccess={() => {
+              // Payment successful, move to review
+              setStep(3);
+            }}
+            onCancel={() => setStep(1)}
+          />
+        </Elements>
+      )}
 
-            <div>
-              <label className="block text-sm font-medium mb-2">Card Number *</label>
-              <input {...register('cardNumber')} className="input" placeholder="1234567890123456" maxLength={16} />
-              {errors.cardNumber && <p className="text-red-600 text-sm mt-1">{errors.cardNumber.message}</p>}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">Name on Card *</label>
-              <input {...register('cardName')} className="input" placeholder="John Doe" />
-              {errors.cardName && <p className="text-red-600 text-sm mt-1">{errors.cardName.message}</p>}
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-2">Expiry Date *</label>
-                <input {...register('expiryDate')} className="input" placeholder="MM/YY" maxLength={5} />
-                {errors.expiryDate && <p className="text-red-600 text-sm mt-1">{errors.expiryDate.message}</p>}
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">CVV *</label>
-                <input {...register('cvv')} className="input" placeholder="123" maxLength={3} />
-                {errors.cvv && <p className="text-red-600 text-sm mt-1">{errors.cvv.message}</p>}
-              </div>
-            </div>
-
-            <div className="flex gap-4">
-              <button type="button" onClick={() => setStep(1)} className="btn btn-secondary flex-1">
-                Back
-              </button>
-              <button type="button" onClick={handleNextStep} className="btn btn-primary flex-1">
-                Review Order
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Step 3: Order Review */}
-        {step === 3 && (
+      {/* Step 3: Order Review */}
+      {step === 3 && (
+        <form onSubmit={handleSubmit(onSubmit)}>
           <div className="space-y-6">
             <div className="card">
               <h2 className="text-2xl font-bold mb-4">Order Summary</h2>
@@ -257,21 +252,27 @@ export const CheckoutPage = () => {
                   </div>
                 ))}
                 <div className="border-t pt-3">
-                  <div className="flex justify-between text-gray-600">
+                  <div className="flex justify-between text-gray-600 dark:text-gray-300">
                     <span>Subtotal</span>
-                    <span>${totalPrice.toFixed(2)}</span>
+                    <span>${subtotal.toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between text-gray-600">
+                  {discountAmount > 0 && (
+                    <div className="flex justify-between text-green-600 dark:text-green-400">
+                      <span>Discount ({appliedDiscount?.code})</span>
+                      <span>-${discountAmount.toFixed(2)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-gray-600 dark:text-gray-300">
                     <span>Shipping</span>
                     <span>${shipping.toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between text-gray-600">
+                  <div className="flex justify-between text-gray-600 dark:text-gray-300">
                     <span>Tax (8%)</span>
                     <span>${tax.toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between text-xl font-bold mt-2">
+                  <div className="flex justify-between text-xl font-bold mt-2 dark:text-white">
                     <span>Total</span>
-                    <span>${finalTotal.toFixed(2)}</span>
+                    <span>${total.toFixed(2)}</span>
                   </div>
                 </div>
               </div>
@@ -281,13 +282,30 @@ export const CheckoutPage = () => {
               <button type="button" onClick={() => setStep(2)} className="btn btn-secondary flex-1">
                 Back
               </button>
-              <button type="submit" disabled={isSubmitting} className="btn btn-primary flex-1">
+              <button type="submit" disabled={isSubmitting} className="btn btn-primary flex-1 focus-visible">
                 {isSubmitting ? 'Processing...' : 'Place Order'}
               </button>
             </div>
           </div>
-        )}
-      </form>
+        </form>
+      )}
+
+      {/* Discount Code Section (always visible) */}
+      {step === 3 && (
+        <div className="mt-6">
+          <DiscountCodeInput
+            subtotal={subtotal}
+            onDiscountApplied={(discount, amount) => {
+              setAppliedDiscount(discount);
+              setDiscountAmount(amount);
+            }}
+            onDiscountRemoved={() => {
+              setAppliedDiscount(null);
+              setDiscountAmount(0);
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 };

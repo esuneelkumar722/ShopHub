@@ -79,3 +79,35 @@ export interface PaginatedResponse<T> {
   limit: number;
   totalPages: number;
 }
+
+export interface DiscountCode {
+  id: string;
+  code: string;
+  discount_type: 'percentage' | 'fixed';
+  discount_value: number;
+  min_purchase_amount: number;
+  max_discount_amount: number | null;
+  usage_limit: number | null;
+  used_count: number;
+  valid_from: string;
+  valid_until: string | null;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface ProductImage {
+  id: string;
+  product_id: string;
+  image_url: string;
+  display_order: number;
+  is_primary: boolean;
+  created_at: string;
+}
+
+export interface OrderDiscount {
+  id: string;
+  order_id: string;
+  discount_code_id: string;
+  discount_amount: number;
+  created_at: string;
+}

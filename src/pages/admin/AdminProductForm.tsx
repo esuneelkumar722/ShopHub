@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
@@ -7,6 +7,8 @@ import { z } from 'zod';
 import { supabase } from '../../lib/supabase';
 import { useAdmin } from '../../hooks/useAdmin';
 import { ArrowLeft } from 'lucide-react';
+import { ImageUploader } from '../../components/admin/ImageUploader';
+import type { ProductImage } from '../../types';
 
 const productSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -27,6 +29,7 @@ export const AdminProductForm = () => {
   const queryClient = useQueryClient();
   const { isAdmin } = useAdmin();
   const isEditMode = !!id;
+  const [productImages, setProductImages] = useState<ProductImage[]>([]);
 
   // Fetch existing product if editing
   const { data: product } = useQuery({
@@ -44,6 +47,30 @@ export const AdminProductForm = () => {
     },
     enabled: isEditMode && isAdmin,
   });
+
+  // Fetch product images if editing
+  const { data: images } = useQuery({
+    queryKey: ['product-images', id],
+    queryFn: async () => {
+      if (!id) return [];
+      const { data, error } = await supabase
+        .from('product_images')
+        .select('*')
+        .eq('product_id', id)
+        .order('display_order');
+
+      if (error) throw error;
+      return (data || []) as unknown as ProductImage[];
+    },
+    enabled: isEditMode && isAdmin,
+  });
+
+  // Update local state when images load
+  useEffect(() => {
+    if (images) {
+      setProductImages(images);
+    }
+  }, [images]);
 
   const {
     register,
@@ -269,7 +296,7 @@ export const AdminProductForm = () => {
             <button
               type="submit"
               disabled={saveMutation.isPending}
-              className="flex-1 bg-primary-600 text-white py-3 rounded-lg hover:bg-primary-700 disabled:opacity-50"
+              className="flex-1 bg-primary-600 text-white py-3 rounded-lg hover:bg-primary-700 disabled:opacity-50 focus-visible"
             >
               {saveMutation.isPending
                 ? 'Saving...'
@@ -280,12 +307,25 @@ export const AdminProductForm = () => {
             <button
               type="button"
               onClick={() => navigate('/admin/products')}
-              className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50"
+              className="px-6 py-3 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-white focus-visible"
             >
               Cancel
             </button>
           </div>
         </form>
+
+        {/* Image Uploader Section (Only for Edit Mode) */}
+        {isEditMode && id && (
+          <div className="card mt-8">
+            <ImageUploader
+              productId={id}
+              existingImages={productImages}
+              onImagesUpdated={() => {
+                queryClient.invalidateQueries({ queryKey: ['product-images', id] });
+              }}
+            />
+          </div>
+        )}
       </div>
     </div>
   );
