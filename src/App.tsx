@@ -17,6 +17,8 @@ import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { AdminProducts } from './pages/admin/AdminProducts';
 import { AdminProductForm } from './pages/admin/AdminProductForm';
 import { AdminOrders } from './pages/admin/AdminOrders';
+import { NotFoundPage } from './pages/NotFoundPage';
+import { NetworkErrorBoundary } from './components/error/NetworkErrorBoundary';
 import { useAuth } from './hooks/useAuth';
 
 const queryClient = new QueryClient({
@@ -51,6 +53,9 @@ function AppContent() {
           <Route path="admin/products/new" element={<AdminProductForm />} />
           <Route path="admin/products/edit/:id" element={<AdminProductForm />} />
           <Route path="admin/orders" element={<AdminOrders />} />
+
+          {/* 404 Not Found - Must be last */}
+          <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Routes>
     </>
@@ -62,9 +67,11 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <BrowserRouter>
-          <ErrorBoundary>
-            <AppContent />
-          </ErrorBoundary>
+          <NetworkErrorBoundary>
+            <ErrorBoundary>
+              <AppContent />
+            </ErrorBoundary>
+          </NetworkErrorBoundary>
           <Toaster position="top-right" richColors closeButton />
         </BrowserRouter>
       </ThemeProvider>

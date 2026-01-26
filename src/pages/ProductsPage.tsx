@@ -292,7 +292,9 @@ export const ProductsPage = () => {
                   loading="lazy"
                   className="w-full h-48 object-cover rounded-lg mb-4 group-hover:scale-105 transition-transform"
                   onError={(e) => {
-                    e.currentTarget.src = 'https://via.placeholder.com/400x300?text=Product+Image';
+                    // Use a base64 placeholder to avoid external URL errors
+                    e.currentTarget.onerror = null; // Prevent infinite loop
+                    e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect fill="%23e5e7eb" width="400" height="300"/%3E%3Ctext fill="%239ca3af" font-family="sans-serif" font-size="24" dy="10.5" font-weight="bold" x="50%25" y="50%25" text-anchor="middle"%3ENo Image%3C/text%3E%3C/svg%3E';
                   }}
                 />
               </Link>
@@ -348,61 +350,84 @@ export const ProductsPage = () => {
 
       {/* Pagination */}
       {!isLoading && !error && totalPages > 1 && (
-        <div className="mt-8 flex justify-center items-center gap-2">
-          <button
-            onClick={() => goToPage(currentPage - 1)}
-            disabled={currentPage === 1}
-            className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
+        <div className="mt-8 flex flex-col items-center gap-4">
+          {/* Pagination Numbers */}
+          <div className="flex justify-center items-center gap-2">
+            <button
+              onClick={() => goToPage(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:border-gray-600 dark:hover:bg-gray-700"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
 
-          <div className="flex gap-1">
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
-              // Show first page, last page, current page, and pages around current
-              const showPage =
-                page === 1 ||
-                page === totalPages ||
-                (page >= currentPage - 1 && page <= currentPage + 1);
+            <div className="flex gap-1">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                // Show first page, last page, current page, and pages around current
+                const showPage =
+                  page === 1 ||
+                  page === totalPages ||
+                  (page >= currentPage - 1 && page <= currentPage + 1);
 
-              // Show ellipsis
-              const showEllipsisBefore = page === currentPage - 2 && currentPage > 3;
-              const showEllipsisAfter = page === currentPage + 2 && currentPage < totalPages - 2;
+                // Show ellipsis
+                const showEllipsisBefore = page === currentPage - 2 && currentPage > 3;
+                const showEllipsisAfter = page === currentPage + 2 && currentPage < totalPages - 2;
 
-              if (!showPage && !showEllipsisBefore && !showEllipsisAfter) {
-                return null;
-              }
+                if (!showPage && !showEllipsisBefore && !showEllipsisAfter) {
+                  return null;
+                }
 
-              if (showEllipsisBefore || showEllipsisAfter) {
+                if (showEllipsisBefore || showEllipsisAfter) {
+                  return (
+                    <span key={page} className="px-3 py-2 text-gray-400">
+                      ...
+                    </span>
+                  );
+                }
+
                 return (
-                  <span key={page} className="px-3 py-2 text-gray-400">
-                    ...
-                  </span>
+                  <button
+                    key={page}
+                    onClick={() => goToPage(page)}
+                    className={`px-4 py-2 rounded-lg ${currentPage === page
+                      ? 'bg-primary-600 text-white'
+                      : 'border border-gray-300 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700 dark:text-gray-200'
+                      }`}
+                  >
+                    {page}
+                  </button>
                 );
-              }
+              })}
+            </div>
 
-              return (
-                <button
-                  key={page}
-                  onClick={() => goToPage(page)}
-                  className={`px-4 py-2 rounded-lg ${currentPage === page
-                    ? 'bg-primary-600 text-white'
-                    : 'border border-gray-300 hover:bg-gray-50'
-                    }`}
-                >
-                  {page}
-                </button>
-              );
-            })}
+            <button
+              onClick={() => goToPage(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:border-gray-600 dark:hover:bg-gray-700"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
           </div>
 
-          <button
-            onClick={() => goToPage(currentPage + 1)}
-            disabled={currentPage === totalPages}
-            className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
+          {/* Load More Button (Alternative pagination style) */}
+          {currentPage < totalPages && (
+            <button
+              onClick={() => {
+                setCurrentPage(currentPage + 1);
+                // Smooth scroll to newly loaded items
+                setTimeout(() => {
+                  window.scrollTo({
+                    top: document.documentElement.scrollHeight - window.innerHeight - 200,
+                    behavior: 'smooth'
+                  });
+                }, 100);
+              }}
+              className="btn btn-secondary flex items-center gap-2"
+            >
+              Load More Products
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          )}
         </div>
       )}
     </div>
