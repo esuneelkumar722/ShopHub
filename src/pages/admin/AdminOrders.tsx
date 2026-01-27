@@ -123,20 +123,20 @@ export const AdminOrders = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Orders Management</h1>
-        <p className="text-gray-600">View and manage all customer orders</p>
+        <h1 className="text-3xl font-bold mb-2 dark:text-white">Orders Management</h1>
+        <p className="text-gray-600 dark:text-gray-300">View and manage all customer orders</p>
       </div>
 
       {/* Status Filter */}
-      <div className="bg-white rounded-lg shadow-md p-4 mb-6">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 mb-6">
         <div className="flex gap-2 flex-wrap">
           {statuses.map((status) => (
             <button
               key={status}
               onClick={() => setStatusFilter(status)}
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${statusFilter === status
-                  ? 'bg-primary-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ? 'bg-primary-600 dark:bg-primary-500 text-white'
+                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
             >
               {status.charAt(0).toUpperCase() + status.slice(1)}
@@ -148,42 +148,42 @@ export const AdminOrders = () => {
 
       {/* Orders List */}
       {isLoading ? (
-        <div className="bg-white rounded-lg shadow-md p-8">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8">
           <div className="animate-pulse space-y-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-32 bg-gray-200 rounded" />
+              <div key={i} className="h-32 bg-gray-200 dark:bg-gray-700 rounded" />
             ))}
           </div>
         </div>
       ) : filteredOrders && filteredOrders.length > 0 ? (
         <div className="space-y-4">
           {filteredOrders.map((order) => (
-            <div key={order.id} className="bg-white rounded-lg shadow-md overflow-hidden">
+            <div key={order.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
               <div className="p-6">
                 <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
                   <div>
-                    <p className="text-sm text-gray-600">Order ID</p>
-                    <p className="font-mono font-medium">{order.id.slice(0, 8).toUpperCase()}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Order ID</p>
+                    <p className="font-mono font-medium dark:text-white">{order.id.slice(0, 8).toUpperCase()}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600">Customer</p>
-                    <p className="font-medium">{order.user?.full_name || order.user?.email || 'N/A'}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Customer</p>
+                    <p className="font-medium dark:text-white">{order.user?.full_name || order.user?.email || 'N/A'}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600">Date</p>
-                    <p className="font-medium">{formatDate(order.created_at)}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Date</p>
+                    <p className="font-medium dark:text-white">{formatDate(order.created_at)}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600">Total</p>
-                    <p className="font-bold text-lg">${order.total.toFixed(2)}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Total</p>
+                    <p className="font-bold text-lg dark:text-white">${order.total.toFixed(2)}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600 mb-1">Status</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Status</p>
                     <select
                       value={order.status}
                       onChange={(e) => handleStatusChange(order.id, e.target.value)}
                       disabled={updateStatusMutation.isPending}
-                      className="px-3 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-sm font-medium"
+                      className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 text-sm font-medium dark:bg-gray-700 dark:text-white"
                     >
                       <option value="pending">Pending</option>
                       <option value="processing">Processing</option>
@@ -195,13 +195,13 @@ export const AdminOrders = () => {
                 </div>
 
                 {/* Order Items */}
-                <div className="border-t pt-4">
-                  <p className="text-sm font-medium text-gray-700 mb-2">
+                <div className="border-t dark:border-gray-700 pt-4">
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Items ({order.order_items.length})
                   </p>
                   <div className="space-y-1">
                     {order.order_items.map((item) => (
-                      <div key={item.id} className="text-sm text-gray-600">
+                      <div key={item.id} className="text-sm text-gray-600 dark:text-gray-300">
                         {item.quantity}x {item.product.name} - ${(item.price * item.quantity).toFixed(2)}
                       </div>
                     ))}
@@ -212,12 +212,12 @@ export const AdminOrders = () => {
           ))}
         </div>
       ) : (
-        <div className="bg-white rounded-lg shadow-md p-12 text-center">
-          <p className="text-gray-500">No orders found with the selected filter.</p>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-12 text-center">
+          <p className="text-gray-500 dark:text-gray-400">No orders found with the selected filter.</p>
         </div>
       )}
 
-      <div className="mt-4 text-sm text-gray-600">
+      <div className="mt-4 text-sm text-gray-600 dark:text-gray-300">
         Showing {filteredOrders?.length || 0} of {orders?.length || 0} orders
       </div>
     </div>

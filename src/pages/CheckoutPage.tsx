@@ -51,7 +51,7 @@ export const CheckoutPage = () => {
   if (items.length === 0) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
-        <h1 className="text-3xl font-bold mb-4">Your Cart is Empty</h1>
+        <h1 className="text-3xl font-bold mb-4 dark:text-white">Your Cart is Empty</h1>
         <button onClick={() => navigate('/products')} className="btn btn-primary">
           Continue Shopping
         </button>
@@ -141,8 +141,8 @@ export const CheckoutPage = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 dark:bg-gray-900 dark:text-white">
-      <h1 className="text-3xl font-bold mb-8">Checkout</h1>
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <h1 className="text-3xl font-bold mb-8 dark:text-white">Checkout</h1>
 
       {/* Progress Steps */}
       <div className="flex items-center justify-between mb-12">
@@ -154,16 +154,16 @@ export const CheckoutPage = () => {
           <div key={num} className="flex items-center">
             <div
               className={`w-12 h-12 rounded-full flex items-center justify-center ${step >= num
-                ? 'bg-primary-600 text-white'
-                : 'bg-gray-200 text-gray-500'
+                ? 'bg-primary-600 text-white dark:bg-primary-500'
+                : 'bg-gray-200 text-gray-500 dark:bg-gray-700 dark:text-gray-400'
                 }`}
             >
               <Icon className="w-6 h-6" />
             </div>
-            <span className="ml-2 font-medium">{label}</span>
+            <span className="ml-2 font-medium dark:text-white">{label}</span>
             {num < 3 && (
               <div
-                className={`w-20 h-1 mx-4 ${step > num ? 'bg-primary-600' : 'bg-gray-200'
+                className={`w-20 h-1 mx-4 ${step > num ? 'bg-primary-600 dark:bg-primary-500' : 'bg-gray-200 dark:bg-gray-700'
                   }`}
               />
             )}
@@ -175,45 +175,45 @@ export const CheckoutPage = () => {
       {step === 1 && (
         <form onSubmit={(e) => { e.preventDefault(); handleNextStep(); }}>
           <div className="card space-y-4">
-            <h2 className="text-2xl font-bold mb-4">Shipping Information</h2>
+            <h2 className="text-2xl font-bold mb-4 dark:text-white">Shipping Information</h2>
 
             <div>
-              <label className="block text-sm font-medium mb-2">Full Name *</label>
-              <input {...register('fullName')} className="input" placeholder="John Doe" />
+              <label className="block text-sm font-medium mb-2 dark:text-gray-200">Full Name *</label>
+              <input {...register('fullName')} className="input dark:bg-gray-700 dark:text-white dark:border-gray-600" placeholder="John Doe" />
               {errors.fullName && (
-                <p className="text-red-600 text-sm mt-1">{errors.fullName.message}</p>
+                <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.fullName.message}</p>
               )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium mb-2">Email *</label>
-                <input {...register('email')} type="email" className="input" placeholder="john@example.com" />
-                {errors.email && <p className="text-red-600 text-sm mt-1">{errors.email.message}</p>}
+                <label className="block text-sm font-medium mb-2 dark:text-gray-200">Email *</label>
+                <input {...register('email')} type="email" className="input dark:bg-gray-700 dark:text-white dark:border-gray-600" placeholder="john@example.com" />
+                {errors.email && <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.email.message}</p>}
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2">Phone *</label>
-                <input {...register('phone')} className="input" placeholder="1234567890" />
-                {errors.phone && <p className="text-red-600 text-sm mt-1">{errors.phone.message}</p>}
+                <label className="block text-sm font-medium mb-2 dark:text-gray-200">Phone *</label>
+                <input {...register('phone')} className="input dark:bg-gray-700 dark:text-white dark:border-gray-600" placeholder="1234567890" />
+                {errors.phone && <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.phone.message}</p>}
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">Address *</label>
-              <input {...register('address')} className="input" placeholder="123 Main St" />
-              {errors.address && <p className="text-red-600 text-sm mt-1">{errors.address.message}</p>}
+              <label className="block text-sm font-medium mb-2 dark:text-gray-200">Address *</label>
+              <input {...register('address')} className="input dark:bg-gray-700 dark:text-white dark:border-gray-600" placeholder="123 Main St" />
+              {errors.address && <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.address.message}</p>}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium mb-2">City *</label>
-                <input {...register('city')} className="input" placeholder="New York" />
-                {errors.city && <p className="text-red-600 text-sm mt-1">{errors.city.message}</p>}
+                <label className="block text-sm font-medium mb-2 dark:text-gray-200">City *</label>
+                <input {...register('city')} className="input dark:bg-gray-700 dark:text-white dark:border-gray-600" placeholder="New York" />
+                {errors.city && <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.city.message}</p>}
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2">ZIP Code *</label>
-                <input {...register('zipCode')} className="input" placeholder="10001" />
-                {errors.zipCode && <p className="text-red-600 text-sm mt-1">{errors.zipCode.message}</p>}
+                <label className="block text-sm font-medium mb-2 dark:text-gray-200">ZIP Code *</label>
+                <input {...register('zipCode')} className="input dark:bg-gray-700 dark:text-white dark:border-gray-600" placeholder="10001" />
+                {errors.zipCode && <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.zipCode.message}</p>}
               </div>
             </div>
 
@@ -243,15 +243,15 @@ export const CheckoutPage = () => {
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="space-y-6">
             <div className="card">
-              <h2 className="text-2xl font-bold mb-4">Order Summary</h2>
+              <h2 className="text-2xl font-bold mb-4 dark:text-white">Order Summary</h2>
               <div className="space-y-3">
                 {items.map((item) => (
-                  <div key={item.id} className="flex justify-between">
+                  <div key={item.id} className="flex justify-between dark:text-gray-200">
                     <span>{item.product.name} x {item.quantity}</span>
                     <span>${(item.product.price * item.quantity).toFixed(2)}</span>
                   </div>
                 ))}
-                <div className="border-t pt-3">
+                <div className="border-t dark:border-gray-600 pt-3">
                   <div className="flex justify-between text-gray-600 dark:text-gray-300">
                     <span>Subtotal</span>
                     <span>${subtotal.toFixed(2)}</span>

@@ -94,9 +94,9 @@ export const OrdersPage = () => {
   if (!user) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
-        <Package className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-        <h2 className="text-2xl font-bold mb-4">Sign in to view orders</h2>
-        <Link to="/login" className="text-primary-600 hover:text-primary-700">
+        <Package className="w-16 h-16 mx-auto text-gray-400 dark:text-gray-500 mb-4" />
+        <h2 className="text-2xl font-bold mb-4 dark:text-white">Sign in to view orders</h2>
+        <Link to="/login" className="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300">
           Go to Sign In →
         </Link>
       </div>
@@ -108,7 +108,7 @@ export const OrdersPage = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="animate-pulse space-y-4">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-gray-200 h-48 rounded-lg" />
+            <div key={i} className="bg-gray-200 dark:bg-gray-700 h-48 rounded-lg" />
           ))}
         </div>
       </div>
@@ -118,12 +118,12 @@ export const OrdersPage = () => {
   if (!orders || orders.length === 0) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
-        <Package className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-        <h2 className="text-2xl font-bold mb-4">No orders yet</h2>
-        <p className="text-gray-600 mb-8">Start shopping to see your orders here!</p>
+        <Package className="w-16 h-16 mx-auto text-gray-400 dark:text-gray-500 mb-4" />
+        <h2 className="text-2xl font-bold mb-4 dark:text-white">No orders yet</h2>
+        <p className="text-gray-600 dark:text-gray-300 mb-8">Start shopping to see your orders here!</p>
         <Link
           to="/products"
-          className="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 inline-block"
+          className="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600 inline-block"
         >
           Browse Products
         </Link>
@@ -133,25 +133,25 @@ export const OrdersPage = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-3xl font-bold mb-8">My Orders</h1>
+      <h1 className="text-3xl font-bold mb-8 dark:text-white">My Orders</h1>
 
       <div className="space-y-6">
         {orders.map((order) => (
-          <div key={order.id} className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+          <div key={order.id} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
             {/* Order Header */}
-            <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            <div className="bg-gray-50 dark:bg-gray-900 px-6 py-4 border-b border-gray-200 dark:border-gray-700">
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
-                  <p className="text-sm text-gray-600">Order ID</p>
-                  <p className="font-mono text-sm">{order.id.slice(0, 8).toUpperCase()}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Order ID</p>
+                  <p className="font-mono text-sm dark:text-white">{order.id.slice(0, 8).toUpperCase()}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Date</p>
-                  <p className="font-medium">{formatDate(order.created_at)}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Date</p>
+                  <p className="font-medium dark:text-white">{formatDate(order.created_at)}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Total</p>
-                  <p className="font-bold text-lg">${order.total.toFixed(2)}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Total</p>
+                  <p className="font-bold text-lg dark:text-white">${order.total.toFixed(2)}</p>
                 </div>
                 <div>{getStatusBadge(order.status)}</div>
               </div>
@@ -159,7 +159,7 @@ export const OrdersPage = () => {
 
             {/* Order Items */}
             <div className="p-6">
-              <h3 className="font-semibold mb-4">Items ({order.order_items.length})</h3>
+              <h3 className="font-semibold mb-4 dark:text-white">Items ({order.order_items.length})</h3>
               <div className="space-y-4">
                 {order.order_items.map((item) => (
                   <div key={item.id} className="flex items-center gap-4">
@@ -172,12 +172,12 @@ export const OrdersPage = () => {
                       }}
                     />
                     <div className="flex-1">
-                      <p className="font-medium">{item.product.name}</p>
-                      <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
+                      <p className="font-medium dark:text-white">{item.product.name}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">Quantity: {item.quantity}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium">${(item.price * item.quantity).toFixed(2)}</p>
-                      <p className="text-sm text-gray-600">${item.price.toFixed(2)} each</p>
+                      <p className="font-medium dark:text-white">${(item.price * item.quantity).toFixed(2)}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">${item.price.toFixed(2)} each</p>
                     </div>
                   </div>
                 ))}

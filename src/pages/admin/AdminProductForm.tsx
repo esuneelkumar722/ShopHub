@@ -14,7 +14,7 @@ const productSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   description: z.string().min(10, 'Description must be at least 10 characters'),
   price: z.number().min(0.01, 'Price must be greater than 0'),
-  category: z.enum(['electronics', 'clothing', 'home']),
+  category: z.enum(['electronics', 'clothing', 'home', 'books', 'sports']),
   image_url: z.string().url('Must be a valid URL'),
   stock: z.number().int().min(0, 'Stock cannot be negative'),
   rating: z.number().min(0).max(5).optional(),
@@ -139,27 +139,27 @@ export const AdminProductForm = () => {
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <button
         onClick={() => navigate('/admin/products')}
-        className="flex items-center text-gray-600 hover:text-gray-800 mb-6"
+        className="flex items-center text-secondary hover:text-primary mb-6 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded px-2 py-1"
       >
         <ArrowLeft className="w-5 h-5 mr-2" />
         Back to Products
       </button>
 
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h1 className="text-2xl font-bold mb-6">
+      <div className="card">
+        <h1 className="text-3xl font-bold mb-8 text-primary">
           {isEditMode ? 'Edit Product' : 'Add New Product'}
         </h1>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 card">
           {/* Name */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-primary mb-2">
               Product Name *
             </label>
             <input
               {...register('name')}
               type="text"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+              className="input"
               placeholder="iPhone 15 Pro"
             />
             {errors.name && (
@@ -169,13 +169,13 @@ export const AdminProductForm = () => {
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-primary mb-2">
               Description *
             </label>
             <textarea
               {...register('description')}
               rows={4}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+              className="input"
               placeholder="Detailed product description..."
             />
             {errors.description && (
@@ -186,14 +186,14 @@ export const AdminProductForm = () => {
           {/* Price and Stock */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-primary mb-2">
                 Price ($) *
               </label>
               <input
                 {...register('price', { valueAsNumber: true })}
                 type="number"
                 step="0.01"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                className="input"
                 placeholder="99.99"
               />
               {errors.price && (
@@ -202,13 +202,13 @@ export const AdminProductForm = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-primary mb-2">
                 Stock *
               </label>
               <input
                 {...register('stock', { valueAsNumber: true })}
                 type="number"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                className="input"
                 placeholder="100"
               />
               {errors.stock && (
@@ -219,17 +219,19 @@ export const AdminProductForm = () => {
 
           {/* Category */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-primary mb-2">
               Category *
             </label>
             <select
               {...register('category')}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+              className="input"
             >
               <option value="">Select a category</option>
               <option value="electronics">Electronics</option>
               <option value="clothing">Clothing</option>
               <option value="home">Home</option>
+              <option value="books">Books</option>
+              <option value="sports">Sports</option>
             </select>
             {errors.category && (
               <p className="text-red-500 text-sm mt-1">{errors.category.message}</p>
@@ -238,19 +240,19 @@ export const AdminProductForm = () => {
 
           {/* Image URL */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-primary mb-2">
               Image URL *
             </label>
             <input
               {...register('image_url')}
               type="url"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+              className="input"
               placeholder="https://example.com/image.jpg"
             />
             {errors.image_url && (
               <p className="text-red-500 text-sm mt-1">{errors.image_url.message}</p>
             )}
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-secondary mt-1">
               Use Unsplash: https://images.unsplash.com/photo-...?w=400
             </p>
           </div>
@@ -258,7 +260,7 @@ export const AdminProductForm = () => {
           {/* Rating and Reviews (Optional) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-primary mb-2">
                 Rating (0-5)
               </label>
               <input
@@ -267,7 +269,7 @@ export const AdminProductForm = () => {
                 step="0.1"
                 min="0"
                 max="5"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                className="input"
                 placeholder="4.5"
               />
               {errors.rating && (
@@ -276,13 +278,13 @@ export const AdminProductForm = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-primary mb-2">
                 Reviews Count
               </label>
               <input
                 {...register('reviews_count', { valueAsNumber: true })}
                 type="number"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                className="input"
                 placeholder="234"
               />
               {errors.reviews_count && (
@@ -296,7 +298,7 @@ export const AdminProductForm = () => {
             <button
               type="submit"
               disabled={saveMutation.isPending}
-              className="flex-1 bg-primary-600 text-white py-3 rounded-lg hover:bg-primary-700 disabled:opacity-50 focus-visible"
+              className="flex-1 btn btn-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
             >
               {saveMutation.isPending
                 ? 'Saving...'
@@ -307,7 +309,7 @@ export const AdminProductForm = () => {
             <button
               type="button"
               onClick={() => navigate('/admin/products')}
-              className="px-6 py-3 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-white focus-visible"
+              className="btn btn-secondary px-6 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 focus-visible:ring-offset-2"
             >
               Cancel
             </button>

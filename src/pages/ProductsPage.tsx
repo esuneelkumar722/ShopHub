@@ -190,7 +190,7 @@ export const ProductsPage = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-3xl font-bold mb-8">Products</h1>
+      <h1 className="text-3xl font-bold mb-8 text-primary">Products</h1>
 
       {/* Filters */}
       <div className="mb-8 card">
@@ -231,7 +231,7 @@ export const ProductsPage = () => {
 
       {/* Product Count */}
       {!isLoading && !error && products.length > 0 && (
-        <div className="mb-4 text-sm text-gray-600">
+        <div className="mb-4 text-sm text-secondary">
           Showing {startIndex + 1}-{Math.min(startIndex + ITEMS_PER_PAGE, totalProducts)} of {totalProducts} products
         </div>
       )}

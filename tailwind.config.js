@@ -24,6 +24,20 @@ export default {
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
       },
+      backgroundColor: {
+        'primary-theme': 'rgb(var(--color-bg-primary) / <alpha-value>)',
+        'secondary-theme': 'rgb(var(--color-bg-secondary) / <alpha-value>)',
+        'tertiary-theme': 'rgb(var(--color-bg-tertiary) / <alpha-value>)',
+        'card-theme': 'rgb(var(--color-card-bg) / <alpha-value>)',
+      },
+      textColor: {
+        'primary-theme': 'rgb(var(--color-text-primary) / <alpha-value>)',
+        'secondary-theme': 'rgb(var(--color-text-secondary) / <alpha-value>)',
+        'tertiary-theme': 'rgb(var(--color-text-tertiary) / <alpha-value>)',
+      },
+      borderColor: {
+        'theme': 'rgb(var(--color-border) / <alpha-value>)',
+      },
     },
   },
   plugins: [],

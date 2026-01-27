@@ -29,7 +29,7 @@ export const Header = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <Link to="/" className="flex items-center space-x-2 focus-visible">
+            <Link to="/" className="flex items-center space-x-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded-lg">
               <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-xl">S</span>
               </div>
@@ -53,7 +53,7 @@ export const Header = () => {
             <div className="flex items-center space-x-6">
               <Link
                 to="/products"
-                className="text-gray-700 dark:text-gray-200 hover:text-primary-600 dark:hover:text-primary-400 font-medium focus-visible"
+                className="text-gray-700 dark:text-gray-200 hover:text-primary-600 dark:hover:text-primary-400 font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded px-2 py-1"
               >
                 Products
               </Link>
@@ -62,7 +62,7 @@ export const Header = () => {
 
               <button
                 onClick={() => setIsMiniCartOpen(true)}
-                className="relative text-gray-700 dark:text-gray-200 hover:text-primary-600 dark:hover:text-primary-400 focus-visible"
+                className="relative text-gray-700 dark:text-gray-200 hover:text-primary-600 dark:hover:text-primary-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded p-1"
                 aria-label="Open shopping cart"
               >
                 <ShoppingCart className="w-6 h-6" />
@@ -79,7 +79,7 @@ export const Header = () => {
               {user && (
                 <Link
                   to="/wishlist"
-                  className="text-gray-700 dark:text-gray-200 hover:text-primary-600 dark:hover:text-primary-400 focus-visible"
+                  className="text-gray-700 dark:text-gray-200 hover:text-primary-600 dark:hover:text-primary-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded p-1"
                   aria-label="Wishlist"
                 >
                   <Heart className="w-6 h-6" />
@@ -90,14 +90,14 @@ export const Header = () => {
                 <div className="flex items-center gap-4">
                   <Link
                     to="/orders"
-                    className="text-gray-700 dark:text-gray-200 hover:text-primary-600 dark:hover:text-primary-400 font-medium focus-visible"
+                    className="text-gray-700 dark:text-gray-200 hover:text-primary-600 dark:hover:text-primary-400 font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded px-2 py-1"
                   >
                     Orders
                   </Link>
                   {isAdmin && (
                     <Link
                       to="/admin"
-                      className="flex items-center gap-1 text-purple-700 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 font-medium focus-visible"
+                      className="flex items-center gap-1 text-purple-700 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 rounded px-2 py-1"
                       aria-label="Admin Panel"
                     >
                       <Shield className="w-4 h-4" />
@@ -110,7 +110,7 @@ export const Header = () => {
                   </div>
                   <button
                     onClick={handleLogout}
-                    className="text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 transition-colors focus-visible"
+                    className="text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 rounded p-1"
                     aria-label="Logout"
                   >
                     <LogOut className="w-5 h-5" />
@@ -119,7 +119,7 @@ export const Header = () => {
               ) : (
                 <Link
                   to="/login"
-                  className="btn btn-primary focus-visible"
+                  className="btn btn-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
                 >
                   Sign In
                 </Link>
