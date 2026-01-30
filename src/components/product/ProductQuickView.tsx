@@ -89,9 +89,10 @@ export const ProductQuickView = ({ product, isOpen, onClose }: ProductQuickViewP
                     {[...Array(5)].map((_, i) => (
                       <Star
                         key={i}
+                        data-testid={i < Math.floor(product.rating) ? 'filled-star' : 'empty-star'}
                         className={`w-5 h-5 ${i < Math.floor(product.rating)
-                            ? 'fill-yellow-400 text-yellow-400'
-                            : 'text-gray-300 dark:text-gray-600'
+                          ? 'fill-yellow-400 text-yellow-400'
+                          : 'text-gray-300 dark:text-gray-600'
                           }`}
                       />
                     ))}
