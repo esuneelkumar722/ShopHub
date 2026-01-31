@@ -90,7 +90,7 @@ export const MiniCart = ({ isOpen, onClose }: MiniCartProps) => {
                     <button
                       type="button"
                       onClick={() => {
-                        updateQuantity(item.product_id, Math.max(1, item.quantity - 1));
+                        updateQuantity(item.product_id, item.quantity - 1);
                       }}
                       className="w-6 h-6 rounded border dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus-visible"
                       aria-label="Decrease quantity"
