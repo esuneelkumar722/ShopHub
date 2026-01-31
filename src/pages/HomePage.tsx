@@ -65,7 +65,7 @@ export const HomePage = () => {
             </p>
             <Link
               to="/products"
-              className="inline-block bg-white dark:bg-gray-100 text-primary-600 dark:text-primary-700 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 dark:hover:bg-gray-200 transition-colors"
+              className="inline-block bg-white dark:bg-gray-100 text-primary-600 dark:text-primary-700 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 dark:hover:bg-gray-200 transition-colors focus:outline-none focus-visible"
             >
               Shop Now
             </Link>
@@ -106,7 +106,7 @@ export const HomePage = () => {
                 <Link
                   key={category}
                   to={`/products?category=${category}`}
-                  className="card hover:shadow-lg transition-shadow group"
+                  className="card hover:shadow-lg transition-shadow group focus:outline-none focus-visible"
                 >
                   <div className={`h-48 rounded-lg mb-4 overflow-hidden bg-gradient-to-br ${info.gradient} flex items-center justify-center`}>
                     <span className="text-6xl">{info.emoji}</span>

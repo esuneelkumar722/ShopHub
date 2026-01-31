@@ -88,8 +88,11 @@ export const MiniCart = ({ isOpen, onClose }: MiniCartProps) => {
                   </p>
                   <div className="flex items-center gap-2 mt-2">
                     <button
-                      onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1))}
-                      className="w-6 h-6 rounded border dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 focus-visible"
+                      type="button"
+                      onClick={() => {
+                        updateQuantity(item.product_id, Math.max(1, item.quantity - 1));
+                      }}
+                      className="w-6 h-6 rounded border dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus-visible"
                       aria-label="Decrease quantity"
                     >
                       -
@@ -98,15 +101,21 @@ export const MiniCart = ({ isOpen, onClose }: MiniCartProps) => {
                       {item.quantity}
                     </span>
                     <button
-                      onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                      className="w-6 h-6 rounded border dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 focus-visible"
+                      type="button"
+                      onClick={() => {
+                        updateQuantity(item.product_id, item.quantity + 1);
+                      }}
+                      className="w-6 h-6 rounded border dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus-visible"
                       aria-label="Increase quantity"
                     >
                       +
                     </button>
                     <button
-                      onClick={() => removeItem(item.id)}
-                      className="ml-auto text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 text-sm focus-visible"
+                      type="button"
+                      onClick={() => {
+                        removeItem(item.product_id);
+                      }}
+                      className="ml-auto text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 text-sm focus:outline-none focus-visible"
                       aria-label={`Remove ${item.product.name} from cart`}
                     >
                       Remove

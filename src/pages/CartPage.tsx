@@ -41,15 +41,21 @@ export const CartPage = () => {
 
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => updateQuantity(item.product_id, item.quantity - 1)}
-                  className="w-8 h-8 rounded-lg border border-theme hover:bg-tertiary text-primary"
+                  type="button"
+                  onClick={() => {
+                    updateQuantity(item.product_id, item.quantity - 1);
+                  }}
+                  className="w-8 h-8 rounded-lg border border-theme hover:bg-tertiary focus:outline-none focus-visible text-primary cursor-pointer"
                 >
                   -
                 </button>
                 <span className="w-12 text-center font-medium text-primary">{item.quantity}</span>
                 <button
-                  onClick={() => updateQuantity(item.product_id, item.quantity + 1)}
-                  className="w-8 h-8 rounded-lg border border-theme hover:bg-tertiary text-primary"
+                  type="button"
+                  onClick={() => {
+                    updateQuantity(item.product_id, item.quantity + 1);
+                  }}
+                  className="w-8 h-8 rounded-lg border border-theme hover:bg-tertiary focus:outline-none focus-visible text-primary cursor-pointer"
                 >
                   +
                 </button>
@@ -60,8 +66,11 @@ export const CartPage = () => {
               </div>
 
               <button
-                onClick={() => removeItem(item.product_id)}
-                className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                type="button"
+                onClick={() => {
+                  removeItem(item.product_id);
+                }}
+                className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 focus:outline-none focus-visible cursor-pointer"
               >
                 <Trash2 className="w-5 h-5" />
               </button>
