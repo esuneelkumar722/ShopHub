@@ -7,6 +7,10 @@ export const Breadcrumbs = () => {
 
   if (pathnames.length === 0) return null;
 
+  // For product detail pages (/products/[id]), hide the product ID from breadcrumbs
+  const isProductDetail = pathnames.length >= 2 && pathnames[0] === 'products';
+  const displayPathnames = isProductDetail ? pathnames.slice(0, -1) : pathnames;
+
   const breadcrumbNameMap: Record<string, string> = {
     products: 'Products',
     cart: 'Shopping Cart',
@@ -30,9 +34,9 @@ export const Breadcrumbs = () => {
             <Home className="w-4 h-4" />
           </Link>
         </li>
-        {pathnames.map((value, index) => {
+        {displayPathnames.map((value, index) => {
           const to = `/${pathnames.slice(0, index + 1).join('/')}`;
-          const isLast = index === pathnames.length - 1;
+          const isLast = index === displayPathnames.length - 1;
           const name = breadcrumbNameMap[value] || value.charAt(0).toUpperCase() + value.slice(1);
 
           return (
