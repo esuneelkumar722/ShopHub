@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase';
 import type { Product, Review, ProductImage } from '../types';
 import { useCartStore } from '../store/cartStore';
 import { ProductDetailSkeleton } from '../components/skeleton/ProductDetailSkeleton';
-import { ProductRecommendations } from '../components/ProductRecommendations';
+import { ProductRecommendations } from '../components/product/ProductRecommendations';
 import { ImageGallery } from '../components/product/ImageGallery';
 import { AddToCartButton } from '../components/cart/AddToCartButton';
 import { ShoppingCart, ArrowLeft, Star, Check, Trash2, Edit2, Heart } from 'lucide-react';

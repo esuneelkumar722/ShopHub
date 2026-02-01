@@ -1,10 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
-import type { Product } from '../types';
+import { supabase } from '../../lib/supabase';
+import type { Product } from '../../types';
 import { ShoppingCart, Check } from 'lucide-react';
 import { useState } from 'react';
-import { useCartStore } from '../store/cartStore';
+import { useCartStore } from '../../store/cartStore';
 
 interface ProductRecommendationsProps {
   currentProductId: string;

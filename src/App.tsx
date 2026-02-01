@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
 import { ThemeProvider } from './contexts/ThemeContext';
-import { ErrorBoundary } from './components/ErrorBoundary';
+import { ErrorBoundary } from './components/error/ErrorBoundary';
 import { Layout } from './components/layout/Layout';
 import { SkipToContent } from './components/accessibility/SkipToContent';
 import { HomePage } from './pages/HomePage';

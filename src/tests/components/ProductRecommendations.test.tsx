@@ -1,7 +1,7 @@
 import { renderWithProviders, screen, fireEvent, waitFor } from '../renderWithProviders';
 import { vi } from 'vitest';
 import type { Product } from '../../types';
-import { ProductRecommendations } from '../../components/ProductRecommendations';
+import { ProductRecommendations } from '../../components/product/ProductRecommendations';
 
 // Mock dependencies
 vi.mock('@tanstack/react-query', async (importOriginal) => {
