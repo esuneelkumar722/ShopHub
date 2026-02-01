@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useUserStore } from '../store/userStore';
 
@@ -10,6 +10,7 @@ export const LoginPage = () => {
   const [error, setError] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const setUser = useUserStore((state) => state.setUser);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -40,7 +41,8 @@ export const LoginPage = () => {
             role: 'user',
             created_at: data.user.created_at!
           });
-          navigate('/products');
+          const from = location.state?.from || '/products';
+          navigate(from);
         }
       }
     } catch (err: any) {

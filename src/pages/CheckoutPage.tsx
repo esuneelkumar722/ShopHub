@@ -13,6 +13,7 @@ import { Elements } from '@stripe/react-stripe-js';
 import { getStripe } from '../lib/stripe';
 import type { DiscountCode } from '../types';
 import { toast } from 'sonner';
+import { useEffect } from 'react';
 
 // Validation schema - shipping info only (payment handled by Stripe)
 const checkoutSchema = z.object({
@@ -32,6 +33,7 @@ export const CheckoutPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [appliedDiscount, setAppliedDiscount] = useState<DiscountCode | null>(null);
   const [discountAmount, setDiscountAmount] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
   const { items, getTotalPrice, clearCart } = useCartStore();
@@ -47,6 +49,23 @@ export const CheckoutPage = () => {
     resolver: zodResolver(checkoutSchema),
     mode: 'onBlur', // Validate when user leaves field
   });
+
+  useEffect(() => {
+    if (!user) {
+      navigate('/login', { state: { from: '/checkout' } });
+    } else {
+      setIsLoading(false);
+    }
+  }, [user, navigate]);
+
+  if (isLoading || !user) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+        <p className="mt-4 text-gray-600 dark:text-gray-400">Loading...</p>
+      </div>
+    );
+  }
 
   if (items.length === 0) {
     return (

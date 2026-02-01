@@ -1,4 +1,4 @@
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import type { Product, Review, ProductImage } from '../types';
@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 export const ProductDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const queryClient = useQueryClient();
   const addItem = useCartStore((state) => state.addItem);
   const user = useUserStore((state) => state.user);
@@ -193,6 +194,12 @@ export const ProductDetailPage = () => {
   });
 
   const handleAddToCart = () => {
+    if (!user) {
+      toast.error('Please sign in to add products to your cart');
+      navigate('/login', { state: { from: location.pathname } });
+      return;
+    }
+    
     if (product) {
       addItem(product);
       toast.success(`${product.name} added to cart!`);

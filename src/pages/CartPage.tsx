@@ -1,9 +1,23 @@
 import { Trash2 } from 'lucide-react';
 import { useCartStore } from '../store/cartStore';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useUserStore } from '../store/userStore';
+import { useEffect } from 'react';
 
 export const CartPage = () => {
   const { items, removeItem, updateQuantity, getTotalPrice } = useCartStore();
+  const user = useUserStore((state) => state.user);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!user) {
+      navigate('/login', { state: { from: '/cart' } });
+    }
+  }, [user, navigate]);
+
+  if (!user) {
+    return null; // or a loading state
+  }
 
   if (items.length === 0) {
     return (
