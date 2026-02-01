@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
+import { useEffect } from 'react';
 import type { Product, ProductFilters } from '../types';
 import { supabase } from '../lib/supabase';
 import { useCartStore } from '../store/cartStore';
@@ -13,10 +15,16 @@ import { ShoppingCart, Check, ChevronLeft, ChevronRight, Heart, Eye } from 'luci
 const ITEMS_PER_PAGE = 12;
 
 export const ProductsPage = () => {
-  const [filters, setFilters] = useState<ProductFilters>({
-    search: '',
-    category: '',
-    sortBy: 'newest'
+  const [searchParams, setSearchParams] = useSearchParams();
+  
+  const [filters, setFilters] = useState<ProductFilters>(() => {
+    // Initialize filters from URL parameters
+    const categoryParam = searchParams.get('category') || '';
+    return {
+      search: '',
+      category: categoryParam,
+      sortBy: 'newest'
+    };
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [addedProducts, setAddedProducts] = useState<Set<string>>(new Set());
@@ -24,6 +32,17 @@ export const ProductsPage = () => {
   const addItem = useCartStore((state) => state.addItem);
   const user = useUserStore((state) => state.user);
   const queryClient = useQueryClient();
+
+  // Update category filter when URL parameters change (for navigation/bookmarks)
+  useEffect(() => {
+    const categoryParam = searchParams.get('category') || '';
+    // Only update if the URL category is different from current filter
+    // This prevents overriding user selections in the dropdown
+    if (categoryParam !== filters.category) {
+      setFilters(prev => ({ ...prev, category: categoryParam }));
+      setCurrentPage(1);
+    }
+  }, [searchParams]); // Remove filters.category from dependency to avoid loops
 
   // Debounced search value (500ms delay)
   const debouncedSearch = useDebounce(filters.search, 500);
@@ -173,8 +192,20 @@ export const ProductsPage = () => {
 
   // Reset to page 1 when filters change
   const handleFilterChange = (newFilters: Partial<ProductFilters>) => {
-    setFilters({ ...filters, ...newFilters });
+    const updatedFilters = { ...filters, ...newFilters };
+    setFilters(updatedFilters);
     setCurrentPage(1);
+    
+    // Update URL parameters for category changes
+    if (newFilters.category !== undefined) {
+      const newSearchParams = new URLSearchParams(searchParams);
+      if (newFilters.category) {
+        newSearchParams.set('category', newFilters.category);
+      } else {
+        newSearchParams.delete('category');
+      }
+      setSearchParams(newSearchParams);
+    }
   };
 
   // Pagination calculations
