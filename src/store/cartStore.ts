@@ -137,14 +137,32 @@ export const useCartStore = create<CartStore>()(
       transferGuestToUser: (userId) => set((state) => {
         const guestItems = [...state.guestItems];
         if (guestItems.length > 0) {
+          const existingUserItems = state.userItems[userId] || [];
+          const mergedItems = [...existingUserItems];
+
+          // Merge guest items with existing user items
+          guestItems.forEach(guestItem => {
+            const existingItemIndex = mergedItems.findIndex(item => item.product_id === guestItem.product_id);
+            if (existingItemIndex >= 0) {
+              // Item already exists, increment quantity
+              mergedItems[existingItemIndex] = {
+                ...mergedItems[existingItemIndex],
+                quantity: mergedItems[existingItemIndex].quantity + guestItem.quantity
+              };
+            } else {
+              // Item doesn't exist, add it
+              mergedItems.push(guestItem);
+            }
+          });
+
           return {
             userItems: {
               ...state.userItems,
-              [userId]: [...(state.userItems[userId] || []), ...guestItems]
+              [userId]: mergedItems
             },
             guestItems: [],
             currentUserId: userId,
-            items: [...(state.userItems[userId] || []), ...guestItems]
+            items: mergedItems
           };
         } else {
           // No guest items, just switch to user cart
