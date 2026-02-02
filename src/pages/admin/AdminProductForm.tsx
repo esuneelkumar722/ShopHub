@@ -107,12 +107,14 @@ export const AdminProductForm = () => {
     mutationFn: async (data: ProductForm) => {
       if (isEditMode) {
         if (!id) throw new Error('Product ID is required');
+        // Note: Using 'as any' due to TypeScript strict mode with Supabase update types
         const { error } = await (supabase as any)
           .from('products')
           .update(data)
           .eq('id', id);
         if (error) throw error;
       } else {
+        // Note: Using 'as any' due to TypeScript strict mode with Supabase insert types
         const { error } = await (supabase as any).from('products').insert([data]);
         if (error) throw error;
       }
@@ -122,8 +124,8 @@ export const AdminProductForm = () => {
       alert(isEditMode ? 'Product updated successfully!' : 'Product created successfully!');
       navigate('/admin/products');
     },
-    onError: (error: any) => {
-      alert('Failed to save product: ' + error.message);
+    onError: (error: unknown) => {
+      alert('Failed to save product: ' + (error instanceof Error ? error.message : 'Unknown error'));
     },
   });
 

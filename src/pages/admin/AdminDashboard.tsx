@@ -17,8 +17,8 @@ export const AdminDashboard = () => {
         supabase.rpc('get_user_count'), // We'll create this function
       ]);
 
-      const totalRevenue = ordersRes.data?.reduce((sum: number, order: any) => sum + Number(order.total), 0) || 0;
-      const lowStockProducts = productsRes.data?.filter((p: any) => p.stock < 10).length || 0;
+      const totalRevenue = ordersRes.data?.reduce((sum: number, order: { total: number }) => sum + Number(order.total), 0) || 0;
+      const lowStockProducts = productsRes.data?.filter((p: { stock: number }) => p.stock < 10).length || 0;
 
       return {
         totalProducts: productsRes.count || 0,

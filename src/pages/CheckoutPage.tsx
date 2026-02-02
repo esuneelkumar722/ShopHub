@@ -151,9 +151,9 @@ export const CheckoutPage = () => {
       clearCart();
       toast.success('Order placed successfully!');
       navigate('/orders');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Checkout error:', error);
-      toast.error('Failed to place order: ' + error.message);
+      toast.error('Failed to place order: ' + (error instanceof Error ? error.message : 'Unknown error'));
     } finally {
       setIsSubmitting(false);
     }

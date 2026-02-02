@@ -54,12 +54,13 @@ export const ProductsPage = () => {
     queryKey: ['wishlist'],
     queryFn: async () => {
       if (!user) return [];
+      // Note: Using 'as any' here due to TypeScript inference limitation with Supabase strict typing
       const { data, error } = await (supabase as any)
         .from('wishlist')
         .select('product_id')
         .eq('user_id', user.id);
       if (error) throw error;
-      return data.map((item: any) => item.product_id);
+      return (data || []).map((item: { product_id: string }) => item.product_id);
     },
     enabled: !!user,
     refetchOnMount: 'always'
@@ -72,13 +73,14 @@ export const ProductsPage = () => {
       const isInWishlist = wishlistItems?.includes(productId);
 
       if (isInWishlist) {
-        const { error } = await (supabase as any)
+        const { error } = await supabase
           .from('wishlist')
           .delete()
           .eq('user_id', user.id)
           .eq('product_id', productId);
         if (error) throw error;
       } else {
+        // Note: Using 'as any' here due to TypeScript inference limitation with Supabase strict typing
         const { error } = await (supabase as any)
           .from('wishlist')
           .insert({ user_id: user.id, product_id: productId });
@@ -137,7 +139,7 @@ export const ProductsPage = () => {
         .order('category');
 
       if (error) throw error;
-      const uniqueCategories = [...new Set(data.map((p: any) => p.category))];
+      const uniqueCategories = [...new Set((data || []).map((p: { category: string }) => p.category))];
       return uniqueCategories as string[];
     }
   });

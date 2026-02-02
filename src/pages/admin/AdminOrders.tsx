@@ -56,7 +56,7 @@ export const AdminOrders = () => {
 
       // Fetch user details separately
       const ordersWithUsers = await Promise.all(
-        data.map(async (order: any) => {
+        data.map(async (order: { user_id: string; [key: string]: any }) => {
           const { data: userData } = await supabase
             .from('users')
             .select('email, full_name')
@@ -67,7 +67,8 @@ export const AdminOrders = () => {
         })
       );
 
-      return ordersWithUsers as Order[];
+      // Note: Type assertion needed due to dynamic user field addition
+      return ordersWithUsers as any as Order[];
     },
     enabled: isAdmin,
   });
@@ -75,6 +76,7 @@ export const AdminOrders = () => {
   // Update order status mutation
   const updateStatusMutation = useMutation({
     mutationFn: async ({ orderId, status }: { orderId: string; status: string }) => {
+      // Note: Using 'as any' due to TypeScript strict mode with Supabase update types
       const { error } = await (supabase as any)
         .from('orders')
         .update({ status })
@@ -86,8 +88,8 @@ export const AdminOrders = () => {
       queryClient.invalidateQueries({ queryKey: ['adminOrders'] });
       alert('Order status updated!');
     },
-    onError: (error: any) => {
-      alert('Failed to update status: ' + error.message);
+    onError: (error: unknown) => {
+      alert('Failed to update status: ' + (error instanceof Error ? error.message : 'Unknown error'));
     },
   });
 

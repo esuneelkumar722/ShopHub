@@ -46,8 +46,8 @@ export const AdminProducts = () => {
       queryClient.invalidateQueries({ queryKey: ['adminProducts'] });
       alert('Product deleted successfully!');
     },
-    onError: (error: any) => {
-      alert('Failed to delete product: ' + error.message);
+    onError: (error: unknown) => {
+      alert('Failed to delete product: ' + (error instanceof Error ? error.message : 'Unknown error'));
     },
   });
 

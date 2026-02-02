@@ -14,7 +14,7 @@ export const HomePage = () => {
         .order('category');
 
       if (error) throw error;
-      const uniqueCategories = [...new Set(data.map((p: any) => p.category))];
+      const uniqueCategories = [...new Set((data || []).map((p: { category: string }) => p.category))];
       return uniqueCategories as string[];
     }
   });

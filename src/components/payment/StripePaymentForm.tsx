@@ -63,9 +63,9 @@ export const StripePaymentForm = ({ amount, onSuccess, onCancel }: StripePayment
         setProcessing(false);
         onSuccess();
       }, 1000);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Payment error:', err);
-      toast.error(err.message || 'An error occurred during payment');
+      toast.error(err instanceof Error ? err.message : 'An error occurred during payment');
       setProcessing(false);
     }
   };

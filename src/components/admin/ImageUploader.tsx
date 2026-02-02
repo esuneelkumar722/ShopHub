@@ -143,6 +143,7 @@ export const ImageUploader = ({ productId, existingImages = [], onImagesUpdated 
   const setPrimaryImage = async (imageId: string) => {
     try {
       // Set all images as non-primary first
+      // Note: Using 'as any' due to TypeScript strict mode with Supabase update types
       await (supabase as any)
         .from('product_images')
         .update({ is_primary: false })
