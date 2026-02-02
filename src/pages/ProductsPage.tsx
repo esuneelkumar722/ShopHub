@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback, useMemo, useTransition } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { useSearchParams } from 'react-router-dom';
@@ -16,7 +16,9 @@ const ITEMS_PER_PAGE = 12;
 
 export const ProductsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  
+  // useTransition marks state updates as non-urgent (won't block UI during search)
+  const [_isPending, startTransition] = useTransition();
+
   const [filters, setFilters] = useState<ProductFilters>(() => {
     // Initialize filters from URL parameters
     const categoryParam = searchParams.get('category') || '';
@@ -112,7 +114,8 @@ export const ProductsPage = () => {
     }
   });
 
-  const handleAddToCart = (product: Product) => {
+  // useCallback prevents function recreation, keeping reference stable for memoized child components
+  const handleAddToCart = useCallback((product: Product) => {
     addItem(product);
     setAddedProducts(prev => new Set(prev).add(product.id));
     setTimeout(() => {
@@ -122,7 +125,7 @@ export const ProductsPage = () => {
         return newSet;
       });
     }, 2000);
-  };
+  }, [addItem]);
 
   // Fetch unique categories from database
   const { data: categories } = useQuery({
@@ -191,11 +194,14 @@ export const ProductsPage = () => {
   });
 
   // Reset to page 1 when filters change
-  const handleFilterChange = (newFilters: Partial<ProductFilters>) => {
-    const updatedFilters = { ...filters, ...newFilters };
-    setFilters(updatedFilters);
-    setCurrentPage(1);
-    
+  // useCallback + startTransition = stable function reference + non-blocking updates
+  const handleFilterChange = useCallback((newFilters: Partial<ProductFilters>) => {
+    startTransition(() => {
+      const updatedFilters = { ...filters, ...newFilters };
+      setFilters(updatedFilters);
+      setCurrentPage(1);
+    });
+
     // Update URL parameters for category changes
     if (newFilters.category !== undefined) {
       const newSearchParams = new URLSearchParams(searchParams);
@@ -206,13 +212,18 @@ export const ProductsPage = () => {
       }
       setSearchParams(newSearchParams);
     }
-  };
+  }, [filters, searchParams, setSearchParams]);
 
-  // Pagination calculations
-  const products = productsData?.products || [];
-  const totalProducts = productsData?.totalCount || 0;
-  const totalPages = Math.ceil(totalProducts / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  // Pagination: useMemo caches expensive calculations - only recalculates when dependencies change
+  const paginationData = useMemo(() => {
+    const products = productsData?.products || [];
+    const totalProducts = productsData?.totalCount || 0;
+    const totalPages = Math.ceil(totalProducts / ITEMS_PER_PAGE);
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return { products, totalProducts, totalPages, startIndex };
+  }, [productsData, currentPage]);
+
+  const { products, totalProducts, totalPages, startIndex } = paginationData;
 
   const goToPage = (page: number) => {
     setCurrentPage(page);

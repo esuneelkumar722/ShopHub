@@ -2,7 +2,7 @@ import { Trash2 } from 'lucide-react';
 import { useCartStore } from '../store/cartStore';
 import { Link, useNavigate } from 'react-router-dom';
 import { useUserStore } from '../store/userStore';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 
 export const CartPage = () => {
   const { items, removeItem, updateQuantity, getTotalPrice } = useCartStore();
@@ -96,22 +96,31 @@ export const CartPage = () => {
           <div className="card sticky top-24">
             <h2 className="text-xl font-bold mb-4 text-primary">Order Summary</h2>
 
-            <div className="space-y-2 mb-4">
-              <div className="flex justify-between text-secondary">
-                <span>Subtotal</span>
-                <span>${getTotalPrice().toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between text-secondary">
-                <span>Shipping</span>
-                <span>$10.00</span>
-              </div>
-              <div className="border-t border-theme pt-2 mt-2">
-                <div className="flex justify-between font-bold text-lg text-primary">
-                  <span>Total</span>
-                  <span>${(getTotalPrice() + 10).toFixed(2)}</span>
+            {/* useMemo caches cart calculations - only recalculates when items change */}
+            {useMemo(() => {
+              const subtotal = getTotalPrice();
+              const shipping = 10.00;
+              const total = subtotal + shipping;
+
+              return (
+                <div className="space-y-2 mb-4">
+                  <div className="flex justify-between text-secondary">
+                    <span>Subtotal</span>
+                    <span>${subtotal.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-secondary">
+                    <span>Shipping</span>
+                    <span>${shipping.toFixed(2)}</span>
+                  </div>
+                  <div className="border-t border-theme pt-2 mt-2">
+                    <div className="flex justify-between font-bold text-lg text-primary">
+                      <span>Total</span>
+                      <span>${total.toFixed(2)}</span>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
+              );
+            }, [items, getTotalPrice])}
 
             <Link to="/checkout" className="btn btn-primary w-full">
               Proceed to Checkout
