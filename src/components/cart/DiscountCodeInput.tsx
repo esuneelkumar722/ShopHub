@@ -28,23 +28,27 @@ export const DiscountCodeInput = ({
     setLoading(true);
 
     try {
-      const { data, error } = await supabase
+      const result = await supabase
         .from('discount_codes')
         .select('*')
         .eq('code', code.toUpperCase())
-        .eq('is_active', true)
-        .single<DiscountCode>();
+        .eq('is_active', true);
 
-      if (error || !data) {
+      const { data, error } = result as { data: DiscountCode[] | null; error: any };
+
+      if (error || !data || data.length === 0) {
         toast.error('Invalid or expired discount code');
         setLoading(false);
         return;
       }
 
+      // Handle array response
+      const discountData = data[0];
+
       // Check if code is still valid
       const now = new Date();
-      const validFrom = new Date(data.valid_from);
-      const validUntil = data.valid_until ? new Date(data.valid_until) : null;
+      const validFrom = new Date(discountData.valid_from);
+      const validUntil = discountData.valid_until ? new Date(discountData.valid_until) : null;
 
       if (now < validFrom) {
         toast.error('This discount code is not yet valid');
@@ -59,35 +63,35 @@ export const DiscountCodeInput = ({
       }
 
       // Check usage limit
-      if (data.usage_limit && data.used_count >= data.usage_limit) {
+      if (discountData.usage_limit && discountData.used_count >= discountData.usage_limit) {
         toast.error('This discount code has reached its usage limit');
         setLoading(false);
         return;
       }
 
       // Check minimum purchase amount
-      if (subtotal < data.min_purchase_amount) {
-        toast.error(`Minimum purchase of $${data.min_purchase_amount.toFixed(2)} required`);
+      if (subtotal < discountData.min_purchase_amount) {
+        toast.error(`Minimum purchase of $${discountData.min_purchase_amount.toFixed(2)} required`);
         setLoading(false);
         return;
       }
 
       // Calculate discount amount
       let discountAmount = 0;
-      if (data.discount_type === 'percentage') {
-        discountAmount = (subtotal * data.discount_value) / 100;
-        if (data.max_discount_amount) {
-          discountAmount = Math.min(discountAmount, data.max_discount_amount);
+      if (discountData.discount_type === 'percentage') {
+        discountAmount = (subtotal * discountData.discount_value) / 100;
+        if (discountData.max_discount_amount) {
+          discountAmount = Math.min(discountAmount, discountData.max_discount_amount);
         }
       } else {
-        discountAmount = data.discount_value;
+        discountAmount = discountData.discount_value;
       }
 
       discountAmount = Math.min(discountAmount, subtotal);
 
-      setAppliedDiscount({ code: data, amount: discountAmount });
-      onDiscountApplied(data, discountAmount);
-      toast.success(`Discount code "${data.code}" applied! You saved $${discountAmount.toFixed(2)}`);
+      setAppliedDiscount({ code: discountData, amount: discountAmount });
+      onDiscountApplied(discountData, discountAmount);
+      toast.success(`Discount code "${discountData.code}" applied! You saved $${discountAmount.toFixed(2)}`);
       setCode('');
     } catch (err) {
       toast.error('Failed to apply discount code');

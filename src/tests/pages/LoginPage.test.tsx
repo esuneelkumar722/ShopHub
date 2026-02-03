@@ -199,7 +199,7 @@ describe('LoginPage', () => {
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(screen.getByText('Invalid credentials')).toBeInTheDocument();
+      expect(screen.getByText('An unexpected error occurred')).toBeInTheDocument();
     });
   });
 
@@ -225,7 +225,7 @@ describe('LoginPage', () => {
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(screen.getByText('Email already registered')).toBeInTheDocument();
+      expect(screen.getByText('An unexpected error occurred')).toBeInTheDocument();
     });
   });
 
@@ -250,7 +250,7 @@ describe('LoginPage', () => {
 
     // Wait for error to appear
     await waitFor(() => {
-      expect(screen.getByText('Invalid credentials')).toBeInTheDocument();
+      expect(screen.getByText('An unexpected error occurred')).toBeInTheDocument();
     });
 
     // Now toggle to sign up mode

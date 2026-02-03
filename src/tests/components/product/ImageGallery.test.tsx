@@ -5,9 +5,9 @@ vi.mock('framer-motion', () => ({
   },
 }));
 
-import { renderWithProviders, screen, fireEvent } from '../renderWithProviders';
+import { renderWithProviders, screen, fireEvent } from '../../renderWithProviders';
 import { vi } from 'vitest';
-import { ImageGallery } from '../../components/product/ImageGallery';
+import { ImageGallery } from '../../../components/product/ImageGallery';
 
 const mockImages = [
   'https://example.com/image1.jpg',
@@ -162,10 +162,10 @@ describe('ImageGallery', () => {
     const image = screen.getByAltText('Test Product - Image 1');
 
     // Mock getBoundingClientRect
-    const mockRect = { 
-      left: 0, 
-      top: 0, 
-      width: 200, 
+    const mockRect = {
+      left: 0,
+      top: 0,
+      width: 200,
       height: 200,
       x: 0,
       y: 0,

@@ -1,4 +1,4 @@
-import { renderWithProviders, screen, fireEvent, waitFor } from '../renderWithProviders';
+import { renderWithProviders, screen, fireEvent, waitFor } from '../../renderWithProviders';
 import { vi } from 'vitest';
 
 // Mock framer-motion
@@ -22,7 +22,7 @@ vi.mock('framer-motion', () => ({
   },
 }));
 
-import { AddToCartButton } from '../../components/cart/AddToCartButton';
+import { AddToCartButton } from '../../../components/cart/AddToCartButton';
 
 describe('AddToCartButton', () => {
   it('renders with default text', () => {

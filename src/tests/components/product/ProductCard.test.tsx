@@ -1,7 +1,7 @@
-import { renderWithProviders, screen, fireEvent } from '../renderWithProviders';
+import { renderWithProviders, screen, fireEvent } from '../../renderWithProviders';
 import { MemoryRouter } from 'react-router-dom';
 import { vi } from 'vitest';
-import type { Product } from '../../types';
+import type { Product } from '../../../types';
 
 // Mock framer-motion
 vi.mock('framer-motion', () => ({
@@ -10,7 +10,7 @@ vi.mock('framer-motion', () => ({
   },
 }));
 
-import { ProductCard } from '../../components/product/ProductCard';
+import { ProductCard } from '../../../components/product/ProductCard';
 
 const mockProduct: Product = {
   id: '1',

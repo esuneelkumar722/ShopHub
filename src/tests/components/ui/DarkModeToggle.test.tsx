@@ -1,6 +1,6 @@
-import { fireEvent, screen } from '../renderWithProviders'
-import { renderWithProviders } from '../renderWithProviders'
-import { DarkModeToggle } from '../../components/ui/DarkModeToggle'
+import { fireEvent, screen } from '../../renderWithProviders'
+import { renderWithProviders } from '../../renderWithProviders'
+import { DarkModeToggle } from '../../../components/ui/DarkModeToggle'
 import { vi } from 'vitest'
 
 // Mock lucide-react icons

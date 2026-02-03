@@ -1,7 +1,7 @@
-import { renderWithProviders, screen, fireEvent, waitFor } from '../renderWithProviders';
+import { renderWithProviders, screen, fireEvent, waitFor } from '../../renderWithProviders';
 import { vi } from 'vitest';
-import type { Product } from '../../types';
-import { ProductRecommendations } from '../../components/product/ProductRecommendations';
+import type { Product } from '../../../types';
+import { ProductRecommendations } from '../../../components/product/ProductRecommendations';
 
 // Mock dependencies
 vi.mock('@tanstack/react-query', async (importOriginal) => {
@@ -25,12 +25,12 @@ vi.mock('lucide-react', () => ({
   Check: ({ className }: { className?: string }) => <svg data-testid="check-icon" className={className} />,
 }));
 
-vi.mock('../../store/cartStore', () => ({
+vi.mock('../../../store/cartStore', () => ({
   useCartStore: vi.fn(),
 }));
 
 // Mock Supabase
-vi.mock('../../lib/supabase', () => ({
+vi.mock('../../../lib/supabase', () => ({
   supabase: {
     from: vi.fn(() => ({
       select: vi.fn(() => ({
@@ -49,7 +49,7 @@ vi.mock('../../lib/supabase', () => ({
 }));
 
 import { useQuery } from '@tanstack/react-query';
-import { useCartStore } from '../../store/cartStore';
+import { useCartStore } from '../../../store/cartStore';
 
 const mockUseQuery = vi.mocked(useQuery);
 const mockUseCartStore = vi.mocked(useCartStore);

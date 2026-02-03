@@ -12,10 +12,10 @@ vi.mock('@tanstack/react-query', async (importOriginal) => {
   };
 });
 
-import { renderWithProviders, screen, fireEvent } from '../renderWithProviders';
+import { renderWithProviders, screen, fireEvent } from '../../renderWithProviders';
 import { vi } from 'vitest';
-import { AdminOrders } from '../../pages/admin/AdminOrders';
-import { useAdmin } from '../../hooks/useAdmin';
+import { AdminOrders } from '../../../pages/admin/AdminOrders';
+import { useAdmin } from '../../../hooks/useAdmin';
 import { useQuery, useMutation } from '@tanstack/react-query';
 
 const mockUseAdmin = vi.mocked(useAdmin);

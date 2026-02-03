@@ -1,5 +1,7 @@
-import { renderWithProviders, screen, fireEvent, waitFor } from '../renderWithProviders';
+import { renderWithProviders, screen, fireEvent, waitFor } from '../../renderWithProviders';
 import { vi } from 'vitest';
+import { http, HttpResponse } from 'msw';
+import { server } from '../../server';
 
 // Mock sonner toast
 vi.mock('sonner', () => ({
@@ -10,18 +12,12 @@ vi.mock('sonner', () => ({
   },
 }));
 
-// Mock supabase
-vi.mock('../../lib/supabase', () => ({
-  supabase: {
-    from: vi.fn(),
-  },
-}));
-
-import { DiscountCodeInput } from '../../../src/components/cart/DiscountCodeInput';
+import { DiscountCodeInput } from '../../../components/cart/DiscountCodeInput';
 
 describe('DiscountCodeInput', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
+
     const { toast } = await import('sonner');
     toast.success = vi.isMockFunction(toast.success) ? toast.success : vi.fn();
     toast.error = vi.isMockFunction(toast.error) ? toast.error : vi.fn();
@@ -39,9 +35,6 @@ describe('DiscountCodeInput', () => {
   });
 
   it('applies percentage discount and calls callback with calculated amount', async () => {
-    const { supabase } = await import('../../lib/supabase');
-    const supabaseMock = supabase as any;
-
     const now = new Date();
     const validFrom = new Date(now.getTime() - 3600_000).toISOString();
     const validUntil = new Date(now.getTime() + 3600_000).toISOString();
@@ -59,15 +52,15 @@ describe('DiscountCodeInput', () => {
       used_count: 0,
     };
 
-    supabaseMock.from.mockReturnValue({
-      select: () => ({
-        eq: () => ({
-          eq: () => ({
-            single: vi.fn().mockResolvedValue({ data: discountData, error: null }),
-          }),
-        }),
-      }),
-    });
+    server.use(http.get('https://ghqwelumltjyphkebalf.supabase.co/rest/v1/discount_codes', ({ request }) => {
+      const url = new URL(request.url);
+      const codeParam = url.searchParams.get('code');
+      const activeParam = url.searchParams.get('is_active');
+      if (codeParam === 'eq.SAVE10' && activeParam === 'eq.true') {
+        return HttpResponse.json([discountData]);
+      }
+      return HttpResponse.json([]);
+    }));
 
     const onDiscountApplied = vi.fn();
     renderWithProviders(<DiscountCodeInput subtotal={200} onDiscountApplied={onDiscountApplied} onDiscountRemoved={vi.fn()} />);
@@ -87,9 +80,6 @@ describe('DiscountCodeInput', () => {
   });
 
   it('applies fixed discount and calls callback with calculated amount', async () => {
-    const { supabase } = await import('../../lib/supabase');
-    const supabaseMock = supabase as any;
-
     const now = new Date();
     const validFrom = new Date(now.getTime() - 3600_000).toISOString();
     const validUntil = new Date(now.getTime() + 3600_000).toISOString();
@@ -107,15 +97,15 @@ describe('DiscountCodeInput', () => {
       used_count: 0,
     };
 
-    supabaseMock.from.mockReturnValue({
-      select: () => ({
-        eq: () => ({
-          eq: () => ({
-            single: vi.fn().mockResolvedValue({ data: discountData, error: null }),
-          }),
-        }),
-      }),
-    });
+    server.use(http.get('https://ghqwelumltjyphkebalf.supabase.co/rest/v1/discount_codes', ({ request }) => {
+      const url = new URL(request.url);
+      const codeParam = url.searchParams.get('code');
+      const activeParam = url.searchParams.get('is_active');
+      if (codeParam === 'eq.FIXED5' && activeParam === 'eq.true') {
+        return HttpResponse.json([discountData]);
+      }
+      return HttpResponse.json([]);
+    }));
 
     const onDiscountApplied = vi.fn();
     renderWithProviders(<DiscountCodeInput subtotal={50} onDiscountApplied={onDiscountApplied} onDiscountRemoved={vi.fn()} />);
@@ -134,9 +124,6 @@ describe('DiscountCodeInput', () => {
   });
 
   it('applies percentage discount with max discount cap', async () => {
-    const { supabase } = await import('../../lib/supabase');
-    const supabaseMock = supabase as any;
-
     const now = new Date();
     const validFrom = new Date(now.getTime() - 3600_000).toISOString();
     const validUntil = new Date(now.getTime() + 3600_000).toISOString();
@@ -154,15 +141,15 @@ describe('DiscountCodeInput', () => {
       used_count: 0,
     };
 
-    supabaseMock.from.mockReturnValue({
-      select: () => ({
-        eq: () => ({
-          eq: () => ({
-            single: vi.fn().mockResolvedValue({ data: discountData, error: null }),
-          }),
-        }),
-      }),
-    });
+    server.use(http.get('https://ghqwelumltjyphkebalf.supabase.co/rest/v1/discount_codes', ({ request }) => {
+      const url = new URL(request.url);
+      const codeParam = url.searchParams.get('code');
+      const activeParam = url.searchParams.get('is_active');
+      if (codeParam === 'eq.MAX10' && activeParam === 'eq.true') {
+        return HttpResponse.json([discountData]);
+      }
+      return HttpResponse.json([]);
+    }));
 
     const onDiscountApplied = vi.fn();
     renderWithProviders(<DiscountCodeInput subtotal={100} onDiscountApplied={onDiscountApplied} onDiscountRemoved={vi.fn()} />);
@@ -181,19 +168,6 @@ describe('DiscountCodeInput', () => {
   });
 
   it('shows error for invalid discount code', async () => {
-    const { supabase } = await import('../../lib/supabase');
-    const supabaseMock = supabase as any;
-
-    supabaseMock.from.mockReturnValue({
-      select: () => ({
-        eq: () => ({
-          eq: () => ({
-            single: vi.fn().mockResolvedValue({ data: null, error: null }),
-          }),
-        }),
-      }),
-    });
-
     renderWithProviders(<DiscountCodeInput subtotal={50} onDiscountApplied={vi.fn()} onDiscountRemoved={vi.fn()} />);
 
     const input = screen.getByLabelText('Discount code');
@@ -209,9 +183,6 @@ describe('DiscountCodeInput', () => {
   });
 
   it('shows error for code not yet valid', async () => {
-    const { supabase } = await import('../../lib/supabase');
-    const supabaseMock = supabase as any;
-
     const now = new Date();
     const validFrom = new Date(now.getTime() + 3600_000).toISOString(); // Future date
     const validUntil = new Date(now.getTime() + 7200_000).toISOString();
@@ -229,15 +200,15 @@ describe('DiscountCodeInput', () => {
       used_count: 0,
     };
 
-    supabaseMock.from.mockReturnValue({
-      select: () => ({
-        eq: () => ({
-          eq: () => ({
-            single: vi.fn().mockResolvedValue({ data: discountData, error: null }),
-          }),
-        }),
-      }),
-    });
+    server.use(http.get('https://ghqwelumltjyphkebalf.supabase.co/rest/v1/discount_codes', ({ request }) => {
+      const url = new URL(request.url);
+      const codeParam = url.searchParams.get('code');
+      const activeParam = url.searchParams.get('is_active');
+      if (codeParam === 'eq.FUTURE' && activeParam === 'eq.true') {
+        return HttpResponse.json([discountData]);
+      }
+      return HttpResponse.json([]);
+    }));
 
     renderWithProviders(<DiscountCodeInput subtotal={50} onDiscountApplied={vi.fn()} onDiscountRemoved={vi.fn()} />);
 
@@ -253,9 +224,6 @@ describe('DiscountCodeInput', () => {
   });
 
   it('shows error for expired discount code', async () => {
-    const { supabase } = await import('../../lib/supabase');
-    const supabaseMock = supabase as any;
-
     const now = new Date();
     const validFrom = new Date(now.getTime() - 7200_000).toISOString();
     const validUntil = new Date(now.getTime() - 3600_000).toISOString(); // Past date
@@ -273,15 +241,15 @@ describe('DiscountCodeInput', () => {
       used_count: 0,
     };
 
-    supabaseMock.from.mockReturnValue({
-      select: () => ({
-        eq: () => ({
-          eq: () => ({
-            single: vi.fn().mockResolvedValue({ data: discountData, error: null }),
-          }),
-        }),
-      }),
-    });
+    server.use(http.get('https://ghqwelumltjyphkebalf.supabase.co/rest/v1/discount_codes', ({ request }) => {
+      const url = new URL(request.url);
+      const codeParam = url.searchParams.get('code');
+      const activeParam = url.searchParams.get('is_active');
+      if (codeParam === 'eq.EXPIRED' && activeParam === 'eq.true') {
+        return HttpResponse.json([discountData]);
+      }
+      return HttpResponse.json([]);
+    }));
 
     renderWithProviders(<DiscountCodeInput subtotal={50} onDiscountApplied={vi.fn()} onDiscountRemoved={vi.fn()} />);
 
@@ -297,9 +265,6 @@ describe('DiscountCodeInput', () => {
   });
 
   it('shows error for usage limit reached', async () => {
-    const { supabase } = await import('../../lib/supabase');
-    const supabaseMock = supabase as any;
-
     const now = new Date();
     const validFrom = new Date(now.getTime() - 3600_000).toISOString();
     const validUntil = new Date(now.getTime() + 3600_000).toISOString();
@@ -317,15 +282,15 @@ describe('DiscountCodeInput', () => {
       used_count: 10, // Reached limit
     };
 
-    supabaseMock.from.mockReturnValue({
-      select: () => ({
-        eq: () => ({
-          eq: () => ({
-            single: vi.fn().mockResolvedValue({ data: discountData, error: null }),
-          }),
-        }),
-      }),
-    });
+    server.use(http.get('https://ghqwelumltjyphkebalf.supabase.co/rest/v1/discount_codes', ({ request }) => {
+      const url = new URL(request.url);
+      const codeParam = url.searchParams.get('code');
+      const activeParam = url.searchParams.get('is_active');
+      if (codeParam === 'eq.LIMITED' && activeParam === 'eq.true') {
+        return HttpResponse.json([discountData]);
+      }
+      return HttpResponse.json([]);
+    }));
 
     renderWithProviders(<DiscountCodeInput subtotal={50} onDiscountApplied={vi.fn()} onDiscountRemoved={vi.fn()} />);
 
@@ -341,9 +306,6 @@ describe('DiscountCodeInput', () => {
   });
 
   it('shows error for subtotal below minimum purchase', async () => {
-    const { supabase } = await import('../../lib/supabase');
-    const supabaseMock = supabase as any;
-
     const now = new Date();
     const validFrom = new Date(now.getTime() - 3600_000).toISOString();
     const validUntil = new Date(now.getTime() + 3600_000).toISOString();
@@ -361,15 +323,15 @@ describe('DiscountCodeInput', () => {
       used_count: 0,
     };
 
-    supabaseMock.from.mockReturnValue({
-      select: () => ({
-        eq: () => ({
-          eq: () => ({
-            single: vi.fn().mockResolvedValue({ data: discountData, error: null }),
-          }),
-        }),
-      }),
-    });
+    server.use(http.get('https://ghqwelumltjyphkebalf.supabase.co/rest/v1/discount_codes', ({ request }) => {
+      const url = new URL(request.url);
+      const codeParam = url.searchParams.get('code');
+      const activeParam = url.searchParams.get('is_active');
+      if (codeParam === 'eq.MIN50' && activeParam === 'eq.true') {
+        return HttpResponse.json([discountData]);
+      }
+      return HttpResponse.json([]);
+    }));
 
     renderWithProviders(<DiscountCodeInput subtotal={30} onDiscountApplied={vi.fn()} onDiscountRemoved={vi.fn()} />);
 
@@ -385,9 +347,6 @@ describe('DiscountCodeInput', () => {
   });
 
   it('handles Enter key to apply discount', async () => {
-    const { supabase } = await import('../../lib/supabase');
-    const supabaseMock = supabase as any;
-
     const now = new Date();
     const validFrom = new Date(now.getTime() - 3600_000).toISOString();
     const validUntil = new Date(now.getTime() + 3600_000).toISOString();
@@ -405,15 +364,15 @@ describe('DiscountCodeInput', () => {
       used_count: 0,
     };
 
-    supabaseMock.from.mockReturnValue({
-      select: () => ({
-        eq: () => ({
-          eq: () => ({
-            single: vi.fn().mockResolvedValue({ data: discountData, error: null }),
-          }),
-        }),
-      }),
-    });
+    server.use(http.get('https://ghqwelumltjyphkebalf.supabase.co/rest/v1/discount_codes', ({ request }) => {
+      const url = new URL(request.url);
+      const codeParam = url.searchParams.get('code');
+      const activeParam = url.searchParams.get('is_active');
+      if (codeParam === 'eq.ENTER' && activeParam === 'eq.true') {
+        return HttpResponse.json([discountData]);
+      }
+      return HttpResponse.json([]);
+    }));
 
     const onDiscountApplied = vi.fn();
     renderWithProviders(<DiscountCodeInput subtotal={50} onDiscountApplied={onDiscountApplied} onDiscountRemoved={vi.fn()} />);
@@ -438,19 +397,10 @@ describe('DiscountCodeInput', () => {
   });
 
   it('shows loading state during apply', async () => {
-    const { supabase } = await import('../../lib/supabase');
-    const supabaseMock = supabase as any;
-
-    // Mock a delayed response
-    supabaseMock.from.mockReturnValue({
-      select: () => ({
-        eq: () => ({
-          eq: () => ({
-            single: vi.fn().mockImplementation(() => new Promise(resolve => setTimeout(() => resolve({ data: null, error: null }), 100))),
-          }),
-        }),
-      }),
-    });
+    server.use(http.get('https://ghqwelumltjyphkebalf.supabase.co/rest/v1/discount_codes', async () => {
+      await new Promise(resolve => setTimeout(resolve, 100));
+      return HttpResponse.json([]);
+    }));
 
     renderWithProviders(<DiscountCodeInput subtotal={50} onDiscountApplied={vi.fn()} onDiscountRemoved={vi.fn()} />);
 

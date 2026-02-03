@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { renderWithProviders, screen } from '../renderWithProviders';
-import { SkipToContent } from '../../components/accessibility/SkipToContent';
+import { renderWithProviders, screen } from '../../renderWithProviders';
+import { SkipToContent } from '../../../components/accessibility/SkipToContent';
 
 // Mock react-router-dom
 import { vi } from 'vitest';

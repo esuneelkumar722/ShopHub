@@ -19,10 +19,10 @@ vi.mock('@tanstack/react-query', async (importOriginal) => {
   };
 });
 
-import { renderWithProviders, screen } from '../renderWithProviders';
+import { renderWithProviders, screen } from '../../renderWithProviders';
 import { vi } from 'vitest';
-import { AdminDashboard } from '../../pages/admin/AdminDashboard';
-import { useAdmin } from '../../hooks/useAdmin';
+import { AdminDashboard } from '../../../pages/admin/AdminDashboard';
+import { useAdmin } from '../../../hooks/useAdmin';
 
 describe('AdminDashboard', () => {
   const mockUseAdmin = vi.mocked(useAdmin);

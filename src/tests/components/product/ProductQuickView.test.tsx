@@ -1,8 +1,8 @@
-import { renderWithProviders, screen, fireEvent, waitFor } from '../renderWithProviders';
+import { renderWithProviders, screen, fireEvent, waitFor } from '../../renderWithProviders';
 import { MemoryRouter } from 'react-router-dom';
 import { vi } from 'vitest';
-import type { Product } from '../../types';
-import { ProductQuickView } from '../../components/product/ProductQuickView';
+import type { Product } from '../../../types';
+import { ProductQuickView } from '../../../components/product/ProductQuickView';
 
 // Mock variables
 const mockCartStore = {
@@ -29,7 +29,7 @@ vi.mock('framer-motion', () => ({
 }));
 
 // Mock accessibility hooks
-vi.mock('../../hooks/useAccessibility', () => ({
+vi.mock('../../../hooks/useAccessibility', () => ({
   useKeyboardNavigation: vi.fn(),
   useFocusTrap: vi.fn(),
 }));
@@ -42,7 +42,7 @@ vi.mock('sonner', () => ({
 }));
 
 // Mock cart store
-vi.mock('../../store/cartStore', () => ({
+vi.mock('../../../store/cartStore', () => ({
   useCartStore: vi.fn((selector) => {
     if (selector) {
       return selector(mockCartStore);
