@@ -1,5 +1,5 @@
 // Mock dependencies
-vi.mock('../../hooks/useAdmin', () => ({
+vi.mock('../../../hooks/useAdmin', () => ({
   useAdmin: vi.fn()
 }));
 vi.mock('@tanstack/react-query', async (importOriginal) => {

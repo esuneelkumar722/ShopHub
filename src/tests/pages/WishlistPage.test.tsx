@@ -4,33 +4,15 @@ import { WishlistPage } from '../../pages/WishlistPage';
 import { renderWithProviders } from '../renderWithProviders';
 
 // Mock dependencies
-vi.mock('../../lib/supabase', () => ({
-  supabase: {
-    from: vi.fn(() => ({
-      select: vi.fn(() => ({
-        eq: vi.fn(() => ({
-          order: vi.fn(() => ({
-            data: [
-              {
-                id: '1',
-                product_id: 'prod1',
-                created_at: '2024-01-01',
-                products: {
-                  id: 'prod1',
-                  name: 'Test Product',
-                  price: 99.99,
-                  image_url: 'test.jpg'
-                }
-              }
-            ],
-            error: null
-          }))
-        }))
-      })),
-      delete: vi.fn(() => ({ error: null }))
-    }))
-  }
-}));
+vi.mock('@tanstack/react-query', async (importOriginal) => {
+  const actual = await importOriginal() as any;
+  return {
+    ...actual,
+    useQuery: vi.fn(),
+    useMutation: vi.fn(),
+    useQueryClient: vi.fn(() => ({ refetchQueries: vi.fn() }))
+  };
+});
 
 vi.mock('../../store/userStore', () => ({
   useUserStore: vi.fn(() => ({
@@ -42,12 +24,161 @@ vi.mock('../../store/cartStore', () => ({
   useCartStore: vi.fn(() => vi.fn())
 }));
 
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom');
+  return {
+    ...actual,
+    Link: ({ children, ...props }: any) => <a {...props}>{children}</a>
+  };
+});
+
+import { useQuery, useMutation } from '@tanstack/react-query';
+
+const mockUseQuery = vi.mocked(useQuery);
+const mockUseMutation = vi.mocked(useMutation);
+
+const mockWishlistData = [
+  {
+    id: '1',
+    product_id: 'prod1',
+    created_at: '2024-01-01',
+    products: {
+      id: 'prod1',
+      name: 'Test Product',
+      price: 99.99,
+      image_url: 'test.jpg',
+      description: 'Test description',
+      rating: 4.5,
+      reviews_count: 10,
+      stock: 5
+    }
+  }
+];
+
 describe('WishlistPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockUseQuery.mockImplementation((options: any) => {
+      if (options.queryKey?.[0] === 'wishlist') {
+        return {
+          data: mockWishlistData,
+          isLoading: false,
+          error: null,
+          isError: false,
+          isPending: false,
+          isLoadingError: false,
+          isRefetchError: false,
+          isSuccess: true,
+          status: 'success',
+          dataUpdatedAt: Date.now(),
+          errorUpdatedAt: 0,
+          failureCount: 0,
+          failureReason: null,
+          errorUpdateCount: 0,
+          isFetched: true,
+          isFetchedAfterMount: true,
+          isFetching: false,
+          isRefetching: false,
+          isStale: false,
+          refetch: vi.fn(),
+          fetchStatus: 'idle'
+        } as any;
+      }
+      return {
+        data: null,
+        isLoading: false,
+        error: null,
+        isError: false,
+        isPending: false,
+        isLoadingError: false,
+        isRefetchError: false,
+        isSuccess: true,
+        status: 'success',
+        dataUpdatedAt: Date.now(),
+        errorUpdatedAt: 0,
+        failureCount: 0,
+        failureReason: null,
+        errorUpdateCount: 0,
+        isFetched: true,
+        isFetchedAfterMount: true,
+        isFetching: false,
+        isRefetching: false,
+        isStale: false,
+        refetch: vi.fn(),
+        fetchStatus: 'idle'
+      } as any;
+    });
+
+    mockUseMutation.mockReturnValue({
+      mutate: vi.fn(),
+      mutateAsync: vi.fn(),
+      reset: vi.fn(),
+      isPending: false,
+      isIdle: true,
+      isError: false,
+      isSuccess: false,
+      status: 'idle',
+      error: null,
+      data: undefined,
+      variables: undefined,
+      submittedAt: 0,
+      failureCount: 0,
+      failureReason: null
+    } as any);
   });
 
   it('renders loading state initially', () => {
+    mockUseQuery.mockImplementationOnce((options: any) => {
+      if (options.queryKey?.[0] === 'wishlist') {
+        return {
+          data: null,
+          isLoading: true,
+          error: null,
+          isError: false,
+          isPending: true,
+          isLoadingError: false,
+          isRefetchError: false,
+          isSuccess: false,
+          status: 'pending',
+          dataUpdatedAt: 0,
+          errorUpdatedAt: 0,
+          failureCount: 0,
+          failureReason: null,
+          errorUpdateCount: 0,
+          isFetched: false,
+          isFetchedAfterMount: false,
+          isFetching: true,
+          isRefetching: false,
+          isStale: true,
+          refetch: vi.fn(),
+          fetchStatus: 'fetching'
+        } as any;
+      }
+      return {
+        data: null,
+        isLoading: false,
+        error: null,
+        isError: false,
+        isPending: false,
+        isLoadingError: false,
+        isRefetchError: false,
+        isSuccess: true,
+        status: 'success',
+        dataUpdatedAt: Date.now(),
+        errorUpdatedAt: 0,
+        failureCount: 0,
+        failureReason: null,
+        errorUpdateCount: 0,
+        isFetched: true,
+        isFetchedAfterMount: true,
+        isFetching: false,
+        isRefetching: false,
+        isStale: false,
+        refetch: vi.fn(),
+        fetchStatus: 'idle'
+      } as any;
+    });
+
     renderWithProviders(<WishlistPage />);
 
     expect(screen.getByText('Loading wishlist...')).toBeInTheDocument();
@@ -64,18 +195,55 @@ describe('WishlistPage', () => {
   });
 
   it('renders empty wishlist message when no items', async () => {
-    // Mock empty wishlist
-    const { supabase } = await import('../../lib/supabase');
-    const supabaseMock = supabase as any;
-    supabaseMock.from.mockReturnValue({
-      select: vi.fn(() => ({
-        eq: vi.fn(() => ({
-          order: vi.fn(() => ({
-            data: [],
-            error: null
-          }))
-        }))
-      }))
+    mockUseQuery.mockImplementationOnce((options: any) => {
+      if (options.queryKey?.[0] === 'wishlist') {
+        return {
+          data: [],
+          isLoading: false,
+          error: null,
+          isError: false,
+          isPending: false,
+          isLoadingError: false,
+          isRefetchError: false,
+          isSuccess: true,
+          status: 'success',
+          dataUpdatedAt: Date.now(),
+          errorUpdatedAt: 0,
+          failureCount: 0,
+          failureReason: null,
+          errorUpdateCount: 0,
+          isFetched: true,
+          isFetchedAfterMount: true,
+          isFetching: false,
+          isRefetching: false,
+          isStale: false,
+          refetch: vi.fn(),
+          fetchStatus: 'idle'
+        } as any;
+      }
+      return {
+        data: null,
+        isLoading: false,
+        error: null,
+        isError: false,
+        isPending: false,
+        isLoadingError: false,
+        isRefetchError: false,
+        isSuccess: true,
+        status: 'success',
+        dataUpdatedAt: Date.now(),
+        errorUpdatedAt: 0,
+        failureCount: 0,
+        failureReason: null,
+        errorUpdateCount: 0,
+        isFetched: true,
+        isFetchedAfterMount: true,
+        isFetching: false,
+        isRefetching: false,
+        isStale: false,
+        refetch: vi.fn(),
+        fetchStatus: 'idle'
+      } as any;
     });
 
     renderWithProviders(<WishlistPage />);
@@ -87,54 +255,82 @@ describe('WishlistPage', () => {
   });
 
   it('renders browse products link when empty', async () => {
-    // Mock empty wishlist
-    const { supabase } = await import('../../lib/supabase');
-    const supabaseMock = supabase as any;
-    supabaseMock.from.mockReturnValue({
-      select: vi.fn(() => ({
-        eq: vi.fn(() => ({
-          order: vi.fn(() => ({
-            data: [],
-            error: null
-          }))
-        }))
-      }))
+    mockUseQuery.mockImplementationOnce((options: any) => {
+      if (options.queryKey?.[0] === 'wishlist') {
+        return {
+          data: [],
+          isLoading: false,
+          error: null,
+          isError: false,
+          isPending: false,
+          isLoadingError: false,
+          isRefetchError: false,
+          isSuccess: true,
+          status: 'success',
+          dataUpdatedAt: Date.now(),
+          errorUpdatedAt: 0,
+          failureCount: 0,
+          failureReason: null,
+          errorUpdateCount: 0,
+          isFetched: true,
+          isFetchedAfterMount: true,
+          isFetching: false,
+          isRefetching: false,
+          isStale: false,
+          refetch: vi.fn(),
+          fetchStatus: 'idle'
+        } as any;
+      }
+      return {
+        data: null,
+        isLoading: false,
+        error: null,
+        isError: false,
+        isPending: false,
+        isLoadingError: false,
+        isRefetchError: false,
+        isSuccess: true,
+        status: 'success',
+        dataUpdatedAt: Date.now(),
+        errorUpdatedAt: 0,
+        failureCount: 0,
+        failureReason: null,
+        errorUpdateCount: 0,
+        isFetched: true,
+        isFetchedAfterMount: true,
+        isFetching: false,
+        isRefetching: false,
+        isStale: false,
+        refetch: vi.fn(),
+        fetchStatus: 'idle'
+      } as any;
     });
 
     renderWithProviders(<WishlistPage />);
 
     await waitFor(() => {
-      expect(screen.getByRole('link', { name: /browse products/i })).toBeInTheDocument();
+      expect(screen.getByText('Browse Products')).toBeInTheDocument();
     });
   });
 
   it('calls remove from wishlist when remove button is clicked', async () => {
-    const { supabase } = await import('../../lib/supabase');
-    const supabaseMock = supabase as any;
-    const mockDelete = vi.fn(() => ({ error: null }));
-    supabaseMock.from.mockReturnValue({
-      select: vi.fn(() => ({
-        eq: vi.fn(() => ({
-          order: vi.fn(() => ({
-            data: [
-              {
-                id: '1',
-                product_id: 'prod1',
-                created_at: '2024-01-01',
-                products: {
-                  id: 'prod1',
-                  name: 'Test Product',
-                  price: 99.99,
-                  image_url: 'test.jpg'
-                }
-              }
-            ],
-            error: null
-          }))
-        }))
-      })),
-      delete: mockDelete
-    });
+    const mockMutate = vi.fn();
+    mockUseMutation.mockReturnValueOnce({
+      mutate: mockMutate,
+      mutateAsync: vi.fn(),
+      reset: vi.fn(),
+      isPending: false,
+      isIdle: true,
+      isError: false,
+      isSuccess: false,
+      status: 'idle',
+      error: null,
+      data: undefined,
+      variables: undefined,
+      submittedAt: 0,
+      failureCount: 0,
+      failureReason: null
+    } as any);
 
     renderWithProviders(<WishlistPage />);
 
@@ -142,12 +338,11 @@ describe('WishlistPage', () => {
       expect(screen.getByText('Test Product')).toBeInTheDocument();
     });
 
-    // Find button by its red color class which indicates remove/delete action
-    const buttons = screen.getAllByRole('button');
-    const removeButton = buttons.find(btn => btn.className.includes('text-red'));
-    fireEvent.click(removeButton!);
+    // Find the remove button by its title attribute
+    const removeButton = screen.getByTitle('Remove from wishlist');
+    fireEvent.click(removeButton);
 
-    expect(mockDelete).toHaveBeenCalled();
+    expect(mockMutate).toHaveBeenCalledWith('1');
   });
 
   it('renders add to cart button for each item', async () => {

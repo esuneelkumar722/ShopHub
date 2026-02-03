@@ -4,27 +4,8 @@ import { CartPage } from '../../pages/CartPage';
 import { renderWithProviders } from '../renderWithProviders';
 
 // Mock dependencies
-const mockUseCartStore = vi.fn(() => ({
-  items: [
-    {
-      id: '1',
-      product_id: 'prod1',
-      quantity: 2,
-      product: {
-        id: 'prod1',
-        name: 'Test Product',
-        price: 25.99,
-        image_url: 'test.jpg'
-      }
-    }
-  ],
-  removeItem: vi.fn(),
-  updateQuantity: vi.fn(),
-  getTotalPrice: vi.fn(() => 51.98)
-}));
-
 vi.mock('../../store/cartStore', () => ({
-  useCartStore: mockUseCartStore
+  useCartStore: vi.fn()
 }));
 
 vi.mock('../../store/userStore', () => ({
@@ -44,6 +25,24 @@ vi.mock('react-router-dom', async () => {
 describe('CartPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockUseCartStore.mockReturnValue({
+      items: [
+        {
+          id: '1',
+          product_id: 'prod1',
+          quantity: 2,
+          product: {
+            id: 'prod1',
+            name: 'Test Product',
+            price: 25.99,
+            image_url: 'test.jpg'
+          }
+        }
+      ],
+      removeItem: vi.fn(),
+      updateQuantity: vi.fn(),
+      getTotalPrice: vi.fn(() => 51.98)
+    });
   });
 
   it('renders empty cart message when no items', () => {
@@ -207,3 +206,7 @@ describe('CartPage', () => {
     expect(mockRemoveItem).toHaveBeenCalledWith('prod1');
   });
 });
+
+import { useCartStore } from '../../store/cartStore';
+
+const mockUseCartStore = vi.mocked(useCartStore);

@@ -4,35 +4,15 @@ import { ProductDetailPage } from '../../pages/ProductDetailPage';
 import { renderWithProviders } from '../renderWithProviders';
 
 // Mock dependencies
-vi.mock('../../lib/supabase', () => ({
-  supabase: {
-    from: vi.fn(() => ({
-      select: vi.fn(() => ({
-        eq: vi.fn(() => ({
-          single: vi.fn(() => ({
-            data: {
-              id: '1',
-              name: 'Test Product',
-              description: 'Test description',
-              price: 99.99,
-              category: 'electronics',
-              rating: 4.5,
-              image_url: 'test.jpg'
-            },
-            error: null
-          })),
-          order: vi.fn(() => ({
-            data: [],
-            error: null
-          }))
-        }))
-      })),
-      insert: vi.fn(() => ({ error: null })),
-      update: vi.fn(() => ({ error: null })),
-      delete: vi.fn(() => ({ error: null }))
-    }))
-  }
-}));
+vi.mock('@tanstack/react-query', async (importOriginal) => {
+  const actual = await importOriginal() as any;
+  return {
+    ...actual,
+    useQuery: vi.fn(),
+    useMutation: vi.fn(),
+    useQueryClient: vi.fn(() => ({ invalidateQueries: vi.fn() }))
+  };
+});
 
 vi.mock('../../store/cartStore', () => ({
   useCartStore: vi.fn(() => vi.fn())
@@ -56,16 +36,261 @@ vi.mock('sonner', () => ({
   toast: vi.fn()
 }));
 
+import { useQuery, useMutation } from '@tanstack/react-query';
+
+const mockUseQuery = vi.mocked(useQuery);
+const mockUseMutation = vi.mocked(useMutation);
+
+const mockProduct = {
+  id: '1',
+  name: 'Test Product',
+  description: 'Test description',
+  price: 99.99,
+  category: 'electronics',
+  rating: 4.5,
+  image_url: 'test.jpg'
+};
+
 describe('ProductDetailPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockUseQuery.mockImplementation((options: any) => {
+      if (options.queryKey?.[0] === 'product') {
+        return {
+          data: mockProduct,
+          isLoading: false,
+          error: null,
+          isError: false,
+          isPending: false,
+          isLoadingError: false,
+          isRefetchError: false,
+          isSuccess: true,
+          status: 'success',
+          dataUpdatedAt: Date.now(),
+          errorUpdatedAt: 0,
+          failureCount: 0,
+          failureReason: null,
+          errorUpdateCount: 0,
+          isFetched: true,
+          isFetchedAfterMount: true,
+          isFetching: false,
+          isRefetching: false,
+          isStale: false,
+          refetch: vi.fn(),
+          fetchStatus: 'idle'
+        } as any;
+      }
+      if (options.queryKey?.[0] === 'product-images') {
+        return {
+          data: [],
+          isLoading: false,
+          error: null,
+          isError: false,
+          isPending: false,
+          isLoadingError: false,
+          isRefetchError: false,
+          isSuccess: true,
+          status: 'success',
+          dataUpdatedAt: Date.now(),
+          errorUpdatedAt: 0,
+          failureCount: 0,
+          failureReason: null,
+          errorUpdateCount: 0,
+          isFetched: true,
+          isFetchedAfterMount: true,
+          isFetching: false,
+          isRefetching: false,
+          isStale: false,
+          refetch: vi.fn(),
+          fetchStatus: 'idle'
+        } as any;
+      }
+      if (options.queryKey?.[0] === 'reviews') {
+        return {
+          data: [],
+          isLoading: false,
+          error: null,
+          isError: false,
+          isPending: false,
+          isLoadingError: false,
+          isRefetchError: false,
+          isSuccess: true,
+          status: 'success',
+          dataUpdatedAt: Date.now(),
+          errorUpdatedAt: 0,
+          failureCount: 0,
+          failureReason: null,
+          errorUpdateCount: 0,
+          isFetched: true,
+          isFetchedAfterMount: true,
+          isFetching: false,
+          isRefetching: false,
+          isStale: false,
+          refetch: vi.fn(),
+          fetchStatus: 'idle'
+        } as any;
+      }
+      if (options.queryKey?.[0] === 'recommendations') {
+        return {
+          data: [
+            {
+              id: '2',
+              name: 'Recommended Product',
+              description: 'Recommended description',
+              price: 49.99,
+              category: 'electronics',
+              rating: 4.0,
+              image_url: 'rec.jpg',
+              stock: 10,
+              reviews_count: 5
+            }
+          ],
+          isLoading: false,
+          error: null,
+          isError: false,
+          isPending: false,
+          isLoadingError: false,
+          isRefetchError: false,
+          isSuccess: true,
+          status: 'success',
+          dataUpdatedAt: Date.now(),
+          errorUpdatedAt: 0,
+          failureCount: 0,
+          failureReason: null,
+          errorUpdateCount: 0,
+          isFetched: true,
+          isFetchedAfterMount: true,
+          isFetching: false,
+          isRefetching: false,
+          isStale: false,
+          refetch: vi.fn(),
+          fetchStatus: 'idle'
+        } as any;
+      }
+      if (options.queryKey?.[0] === 'wishlist') {
+        return {
+          data: [],
+          isLoading: false,
+          error: null,
+          isError: false,
+          isPending: false,
+          isLoadingError: false,
+          isRefetchError: false,
+          isSuccess: true,
+          status: 'success',
+          dataUpdatedAt: Date.now(),
+          errorUpdatedAt: 0,
+          failureCount: 0,
+          failureReason: null,
+          errorUpdateCount: 0,
+          isFetched: true,
+          isFetchedAfterMount: true,
+          isFetching: false,
+          isRefetching: false,
+          isStale: false,
+          refetch: vi.fn(),
+          fetchStatus: 'idle'
+        } as any;
+      }
+      return {
+        data: null,
+        isLoading: false,
+        error: null,
+        isError: false,
+        isPending: false,
+        isLoadingError: false,
+        isRefetchError: false,
+        isSuccess: true,
+        status: 'success',
+        dataUpdatedAt: Date.now(),
+        errorUpdatedAt: 0,
+        failureCount: 0,
+        failureReason: null,
+        errorUpdateCount: 0,
+        isFetched: true,
+        isFetchedAfterMount: true,
+        isFetching: false,
+        isRefetching: false,
+        isStale: false,
+        refetch: vi.fn(),
+        fetchStatus: 'idle'
+      } as any;
+    });
+
+    mockUseMutation.mockReturnValue({
+      mutate: vi.fn(),
+      mutateAsync: vi.fn(),
+      reset: vi.fn(),
+      isPending: false,
+      isIdle: true,
+      isError: false,
+      isSuccess: false,
+      status: 'idle',
+      error: null,
+      data: undefined,
+      variables: undefined,
+      submittedAt: 0,
+      failureCount: 0,
+      failureReason: null
+    } as any);
   });
 
   it('renders loading skeleton when loading', () => {
-    // Component renders not found when no product data
+    mockUseQuery.mockImplementation((options: any) => {
+      if (options.queryKey?.[0] === 'product') {
+        return {
+          data: null,
+          isLoading: true,
+          error: null,
+          isError: false,
+          isPending: true,
+          isLoadingError: false,
+          isRefetchError: false,
+          isSuccess: false,
+          status: 'pending',
+          dataUpdatedAt: 0,
+          errorUpdatedAt: 0,
+          failureCount: 0,
+          failureReason: null,
+          errorUpdateCount: 0,
+          isFetched: false,
+          isFetchedAfterMount: false,
+          isFetching: true,
+          isRefetching: false,
+          isStale: false,
+          refetch: vi.fn(),
+          fetchStatus: 'fetching'
+        } as any;
+      }
+      return {
+        data: null,
+        isLoading: false,
+        error: null,
+        isError: false,
+        isPending: false,
+        isLoadingError: false,
+        isRefetchError: false,
+        isSuccess: true,
+        status: 'success',
+        dataUpdatedAt: Date.now(),
+        errorUpdatedAt: 0,
+        failureCount: 0,
+        failureReason: null,
+        errorUpdateCount: 0,
+        isFetched: true,
+        isFetchedAfterMount: true,
+        isFetching: false,
+        isRefetching: false,
+        isStale: false,
+        refetch: vi.fn(),
+        fetchStatus: 'idle'
+      } as any;
+    });
+
     renderWithProviders(<ProductDetailPage />);
 
-    expect(screen.getByText('Product Not Found')).toBeInTheDocument();
+    // Should show loading skeleton
+    expect(document.querySelector('.animate-pulse')).toBeInTheDocument();
   });
 
   it('renders product details when loaded', async () => {
@@ -95,18 +320,55 @@ describe('ProductDetailPage', () => {
   });
 
   it('shows error when product not found', async () => {
-    // Mock error response
-    const { supabase } = await import('../../lib/supabase');
-    const supabaseMock = supabase as any;
-    supabaseMock.from.mockReturnValue({
-      select: vi.fn(() => ({
-        eq: vi.fn(() => ({
-          single: vi.fn(() => ({
-            data: null,
-            error: { message: 'Product not found' }
-          }))
-        }))
-      }))
+    mockUseQuery.mockImplementation((options: any) => {
+      if (options.queryKey?.[0] === 'product') {
+        return {
+          data: null,
+          isLoading: false,
+          error: { message: 'Product not found' },
+          isError: true,
+          isPending: false,
+          isLoadingError: false,
+          isRefetchError: false,
+          isSuccess: false,
+          status: 'error',
+          dataUpdatedAt: 0,
+          errorUpdatedAt: Date.now(),
+          failureCount: 1,
+          failureReason: { message: 'Product not found' },
+          errorUpdateCount: 1,
+          isFetched: true,
+          isFetchedAfterMount: true,
+          isFetching: false,
+          isRefetching: false,
+          isStale: false,
+          refetch: vi.fn(),
+          fetchStatus: 'idle'
+        } as any;
+      }
+      return {
+        data: null,
+        isLoading: false,
+        error: null,
+        isError: false,
+        isPending: false,
+        isLoadingError: false,
+        isRefetchError: false,
+        isSuccess: true,
+        status: 'success',
+        dataUpdatedAt: Date.now(),
+        errorUpdatedAt: 0,
+        failureCount: 0,
+        failureReason: null,
+        errorUpdateCount: 0,
+        isFetched: true,
+        isFetchedAfterMount: true,
+        isFetching: false,
+        isRefetching: false,
+        isStale: false,
+        refetch: vi.fn(),
+        fetchStatus: 'idle'
+      } as any;
     });
 
     renderWithProviders(<ProductDetailPage />);
@@ -120,8 +382,9 @@ describe('ProductDetailPage', () => {
     renderWithProviders(<ProductDetailPage />);
 
     await waitFor(() => {
-      // Component shows not found, not recommendations
-      expect(screen.getByText('Product Not Found')).toBeInTheDocument();
+      expect(screen.getByText('Test Product')).toBeInTheDocument();
+      // ProductRecommendations component should be rendered
+      expect(screen.getByText('You May Also Like')).toBeInTheDocument();
     });
   });
 
@@ -129,8 +392,9 @@ describe('ProductDetailPage', () => {
     renderWithProviders(<ProductDetailPage />);
 
     await waitFor(() => {
-      // Component shows not found, not reviews
-      expect(screen.getByText('Product Not Found')).toBeInTheDocument();
+      expect(screen.getByText('Test Product')).toBeInTheDocument();
+      // Reviews section should be rendered
+      expect(screen.getByText('Customer Reviews')).toBeInTheDocument();
     });
   });
 });

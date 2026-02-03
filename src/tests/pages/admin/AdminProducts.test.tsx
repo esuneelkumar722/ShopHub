@@ -1,5 +1,5 @@
 // Mock dependencies
-vi.mock('../../hooks/useAdmin', () => ({
+vi.mock('../../../hooks/useAdmin', () => ({
   useAdmin: vi.fn()
 }));
 vi.mock('@tanstack/react-query', async (importOriginal) => {
@@ -46,10 +46,10 @@ vi.mock('react-router-dom', async (importOriginal) => {
   };
 });
 
-import { renderWithProviders, screen, fireEvent, waitFor } from '../renderWithProviders';
+import { renderWithProviders, screen, fireEvent, waitFor } from '../../renderWithProviders';
 import { vi } from 'vitest';
-import { AdminProducts } from '../../pages/admin/AdminProducts';
-import { useAdmin } from '../../hooks/useAdmin';
+import { AdminProducts } from '../../../pages/admin/AdminProducts';
+import { useAdmin } from '../../../hooks/useAdmin';
 import { useQuery, useMutation } from '@tanstack/react-query';
 
 const mockUseAdmin = vi.mocked(useAdmin);

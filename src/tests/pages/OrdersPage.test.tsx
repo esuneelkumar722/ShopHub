@@ -4,39 +4,13 @@ import { OrdersPage } from '../../pages/OrdersPage';
 import { renderWithProviders } from '../renderWithProviders';
 
 // Mock dependencies
-vi.mock('../../lib/supabase', () => ({
-  supabase: {
-    from: vi.fn(() => ({
-      select: vi.fn(() => ({
-        eq: vi.fn(() => ({
-          order: vi.fn(() => ({
-            data: [
-              {
-                id: 'order1',
-                total: 99.99,
-                status: 'completed',
-                created_at: '2024-01-01T00:00:00Z',
-                order_items: [
-                  {
-                    id: 'item1',
-                    product_id: 'prod1',
-                    quantity: 1,
-                    price: 99.99,
-                    product: {
-                      name: 'Test Product',
-                      image_url: 'test.jpg'
-                    }
-                  }
-                ]
-              }
-            ],
-            error: null
-          }))
-        }))
-      }))
-    }))
-  }
-}));
+vi.mock('@tanstack/react-query', async (importOriginal) => {
+  const actual = await importOriginal() as any;
+  return {
+    ...actual,
+    useQuery: vi.fn()
+  };
+});
 
 vi.mock('../../store/userStore', () => ({
   useUserStore: vi.fn(() => ({
@@ -44,16 +18,88 @@ vi.mock('../../store/userStore', () => ({
   }))
 }));
 
+import { useQuery } from '@tanstack/react-query';
+
+const mockUseQuery = vi.mocked(useQuery);
+
+const mockOrders = [
+  {
+    id: 'order1',
+    total: 99.99,
+    status: 'delivered',
+    created_at: '2024-01-01T00:00:00Z',
+    order_items: [
+      {
+        id: 'item1',
+        product_id: 'prod1',
+        quantity: 1,
+        price: 99.99,
+        product: {
+          name: 'Test Product',
+          image_url: 'test.jpg'
+        }
+      }
+    ]
+  }
+];
+
 describe('OrdersPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockUseQuery.mockReturnValue({
+      data: mockOrders,
+      isLoading: false,
+      error: null,
+      isError: false,
+      isPending: false,
+      isLoadingError: false,
+      isRefetchError: false,
+      isSuccess: true,
+      status: 'success',
+      dataUpdatedAt: Date.now(),
+      errorUpdatedAt: 0,
+      failureCount: 0,
+      failureReason: null,
+      errorUpdateCount: 0,
+      isFetched: true,
+      isFetchedAfterMount: true,
+      isFetching: false,
+      isRefetching: false,
+      isStale: false,
+      refetch: vi.fn(),
+      fetchStatus: 'idle'
+    } as any);
   });
 
   it('renders loading state initially', () => {
+    mockUseQuery.mockReturnValue({
+      data: undefined,
+      isLoading: true,
+      error: null,
+      isError: false,
+      isPending: true,
+      isLoadingError: false,
+      isRefetchError: false,
+      isSuccess: false,
+      status: 'pending',
+      dataUpdatedAt: 0,
+      errorUpdatedAt: 0,
+      failureCount: 0,
+      failureReason: null,
+      errorUpdateCount: 0,
+      isFetched: false,
+      isFetchedAfterMount: false,
+      isFetching: true,
+      isRefetching: false,
+      isStale: false,
+      refetch: vi.fn(),
+      fetchStatus: 'fetching'
+    } as any);
+
     renderWithProviders(<OrdersPage />);
 
-    // Component shows empty state, not loading state
-    expect(screen.getByText('No orders yet')).toBeInTheDocument();
+    // Should show loading skeleton
+    expect(document.querySelector('.animate-pulse')).toBeInTheDocument();
   });
 
   it('renders orders when loaded', async () => {
@@ -61,8 +107,8 @@ describe('OrdersPage', () => {
 
     await waitFor(() => {
       expect(screen.getByText('My Orders')).toBeInTheDocument();
-      expect(screen.getByText('Order #order1')).toBeInTheDocument();
-      expect(screen.getByText('$99.99')).toBeInTheDocument();
+      expect(screen.getByText('ORDER1')).toBeInTheDocument();
+      expect(screen.getByText('Test Product')).toBeInTheDocument();
     });
   });
 
@@ -70,7 +116,7 @@ describe('OrdersPage', () => {
     renderWithProviders(<OrdersPage />);
 
     await waitFor(() => {
-      expect(screen.getByText('No orders yet')).toBeInTheDocument();
+      expect(screen.getByText('Delivered')).toBeInTheDocument();
     });
   });
 
@@ -78,24 +124,35 @@ describe('OrdersPage', () => {
     renderWithProviders(<OrdersPage />);
 
     await waitFor(() => {
-      expect(screen.getByText('No orders yet')).toBeInTheDocument();
+      expect(screen.getByText('Test Product')).toBeInTheDocument();
+      expect(screen.getByText('Quantity: 1')).toBeInTheDocument();
     });
   });
 
   it('renders empty orders message when no orders', async () => {
-    // Mock empty orders
-    const { supabase } = await import('../../lib/supabase');
-    const supabaseMock = supabase as any;
-    supabaseMock.from.mockReturnValue({
-      select: vi.fn(() => ({
-        eq: vi.fn(() => ({
-          order: vi.fn(() => ({
-            data: [],
-            error: null
-          }))
-        }))
-      }))
-    });
+    mockUseQuery.mockReturnValue({
+      data: [],
+      isLoading: false,
+      error: null,
+      isError: false,
+      isPending: false,
+      isLoadingError: false,
+      isRefetchError: false,
+      isSuccess: true,
+      status: 'success',
+      dataUpdatedAt: Date.now(),
+      errorUpdatedAt: 0,
+      failureCount: 0,
+      failureReason: null,
+      errorUpdateCount: 0,
+      isFetched: true,
+      isFetchedAfterMount: true,
+      isFetching: false,
+      isRefetching: false,
+      isStale: false,
+      refetch: vi.fn(),
+      fetchStatus: 'idle'
+    } as any);
 
     renderWithProviders(<OrdersPage />);
 
@@ -106,19 +163,29 @@ describe('OrdersPage', () => {
   });
 
   it('renders continue shopping link when no orders', async () => {
-    // Mock empty orders
-    const { supabase } = await import('../../lib/supabase');
-    const supabaseMock = supabase as any;
-    supabaseMock.from.mockReturnValue({
-      select: vi.fn(() => ({
-        eq: vi.fn(() => ({
-          order: vi.fn(() => ({
-            data: [],
-            error: null
-          }))
-        }))
-      }))
-    });
+    mockUseQuery.mockReturnValue({
+      data: [],
+      isLoading: false,
+      error: null,
+      isError: false,
+      isPending: false,
+      isLoadingError: false,
+      isRefetchError: false,
+      isSuccess: true,
+      status: 'success',
+      dataUpdatedAt: Date.now(),
+      errorUpdatedAt: 0,
+      failureCount: 0,
+      failureReason: null,
+      errorUpdateCount: 0,
+      isFetched: true,
+      isFetchedAfterMount: true,
+      isFetching: false,
+      isRefetching: false,
+      isStale: false,
+      refetch: vi.fn(),
+      fetchStatus: 'idle'
+    } as any);
 
     renderWithProviders(<OrdersPage />);
 
