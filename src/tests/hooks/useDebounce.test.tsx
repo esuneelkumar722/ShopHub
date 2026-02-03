@@ -109,7 +109,7 @@ describe('useDebounce', () => {
     expect(arrayResult.current).toBe(arr);
   });
 
-  it('handles zero delay', async () => {
+  it('handles zero delay', () => {
     const { result, rerender } = renderHook(
       ({ value }) => useDebounce(value, 0),
       { initialProps: { value: 'initial' } }
@@ -117,9 +117,9 @@ describe('useDebounce', () => {
 
     rerender({ value: 'updated' });
 
-    // Even with zero delay, setTimeout is async
-    await act(async () => {
-      await new Promise(resolve => setTimeout(resolve, 10));
+    // With zero delay, setTimeout is still async, advance timers
+    act(() => {
+      vi.advanceTimersByTime(0);
     });
 
     expect(result.current).toBe('updated');

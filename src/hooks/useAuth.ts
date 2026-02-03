@@ -16,6 +16,8 @@ export const useAuth = () => {
           role: 'user',
           created_at: session.user.created_at!
         });
+      } else {
+        setUser(null);
       }
     });
 
