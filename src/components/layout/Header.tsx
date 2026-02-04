@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ShoppingCart, User, Search, LogOut, Shield, Heart } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
@@ -8,6 +8,7 @@ import { supabase } from '../../lib/supabase';
 import { useAdmin } from '../../hooks/useAdmin';
 import { DarkModeToggle } from '../ui/DarkModeToggle';
 import { MiniCart } from '../cart/MiniCart';
+import { useQuery } from '@tanstack/react-query';
 
 export const Header = () => {
   const totalItems = useCartStore((state) => state.getTotalItems());
@@ -16,11 +17,67 @@ export const Header = () => {
   const { isAdmin } = useAdmin();
   const navigate = useNavigate();
   const [isMiniCartOpen, setIsMiniCartOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  // Fetch search suggestions
+  const { data: suggestions = [] } = useQuery({
+    queryKey: ['search-suggestions', searchQuery],
+    queryFn: async () => {
+      if (searchQuery.length < 2) return [];
+
+      const { data, error } = await supabase
+        .from('products')
+        .select('name')
+        .ilike('name', `%${searchQuery}%`)
+        .limit(8);
+
+      if (error) {
+        console.error('Error fetching suggestions:', error);
+        return [];
+      }
+
+      // Return unique product names
+      const uniqueNames = [...new Set((data as { name: string }[]).map(item => item.name))];
+      return uniqueNames.slice(0, 5);
+    },
+    enabled: searchQuery.length >= 2,
+  });
+
+  // Show suggestions when they become available
+  useEffect(() => {
+    if (suggestions.length > 0 && searchQuery.length >= 2) {
+      // eslint-disable-next-line
+      setShowSuggestions(true);
+    }
+  }, [suggestions, searchQuery]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setUser(null);
     navigate('/');
+  };
+
+  const handleSearchSubmit = () => {
+    if (searchQuery.trim()) {
+      navigate(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery(''); // Clear after navigation
+      setShowSuggestions(false);
+    }
+  };
+
+  const handleSuggestionClick = (suggestion: string) => {
+    setSearchQuery(suggestion);
+    setShowSuggestions(false);
+    // Auto-submit the search
+    navigate(`/products?search=${encodeURIComponent(suggestion)}`);
+    setSearchQuery('');
+  };
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleSearchSubmit();
+    }
   };
 
   return (
@@ -31,13 +88,13 @@ export const Header = () => {
             {/* Logo */}
             <Link to="/" className="flex items-center space-x-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded-lg">
               <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-xl">S</span>
+                <span className="text-white dark:text-gray-900 font-bold text-xl">S</span>
               </div>
               <span className="text-xl font-bold text-gray-900 dark:text-white">ShopHub</span>
             </Link>
 
             {/* Search */}
-            <div className="flex-1 max-w-lg mx-8">
+            <div className="flex-1 max-w-lg mx-8 relative">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
@@ -45,7 +102,31 @@ export const Header = () => {
                   placeholder="Search products..."
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-gray-800 dark:text-white"
                   aria-label="Search products"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={handleSearchKeyDown}
+                  onFocus={() => searchQuery.length >= 2 && setShowSuggestions(true)}
+                  onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
                 />
+
+                {/* Autocomplete Suggestions */}
+                {showSuggestions && suggestions.length > 0 && (
+                  <div className="absolute top-full left-0 right-0 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto mt-1">
+                    {suggestions.map((suggestion, index) => (
+                      <button
+                        key={index}
+                        className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white"
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          handleSuggestionClick(suggestion);
+                        }}
+                      >
+                        <Search className="inline w-4 h-4 mr-2 text-gray-400" />
+                        {suggestion}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 

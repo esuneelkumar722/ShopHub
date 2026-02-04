@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useTransition } from 'react';
+import { useState, useCallback, useMemo, useTransition, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { useSearchParams } from 'react-router-dom';
@@ -17,13 +17,14 @@ const ITEMS_PER_PAGE = 12;
 export const ProductsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   // useTransition marks state updates as non-urgent (won't block UI during search)
-  const [_isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
 
   const [filters, setFilters] = useState<ProductFilters>(() => {
     // Initialize filters from URL parameters
     const categoryParam = searchParams.get('category') || '';
+    const searchParam = searchParams.get('search') || '';
     return {
-      search: '',
+      search: searchParam,
       category: categoryParam,
       sortBy: 'newest'
     };
@@ -34,17 +35,25 @@ export const ProductsPage = () => {
   const addItem = useCartStore((state) => state.addItem);
   const user = useUserStore((state) => state.user);
   const queryClient = useQueryClient();
+  const filtersRef = useRef(filters);
 
-  // Update category filter when URL parameters change (for navigation/bookmarks)
+  // Update category and search filters when URL parameters change (for navigation/bookmarks)
   useEffect(() => {
     const categoryParam = searchParams.get('category') || '';
-    // Only update if the URL category is different from current filter
-    // This prevents overriding user selections in the dropdown
-    if (categoryParam !== filters.category) {
-      setFilters(prev => ({ ...prev, category: categoryParam }));
+    const searchParam = searchParams.get('search') || '';
+    // Only update if the URL params are different from current filters
+    // This prevents overriding user selections
+    if (categoryParam !== filtersRef.current.category || searchParam !== filtersRef.current.search) {
+      // eslint-disable-next-line
+      setFilters(prev => ({ ...prev, category: categoryParam, search: searchParam }));
       setCurrentPage(1);
     }
-  }, [searchParams]); // Remove filters.category from dependency to avoid loops
+  }, [searchParams]); // Remove filters from dependency to avoid loops
+
+  // Update ref when filters change
+  useEffect(() => {
+    filtersRef.current = filters;
+  }, [filters]);
 
   // Debounced search value (500ms delay)
   const debouncedSearch = useDebounce(filters.search, 500);
@@ -55,6 +64,7 @@ export const ProductsPage = () => {
     queryFn: async () => {
       if (!user) return [];
       // Note: Using 'as any' here due to TypeScript inference limitation with Supabase strict typing
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error } = await (supabase as any)
         .from('wishlist')
         .select('product_id')
@@ -81,6 +91,7 @@ export const ProductsPage = () => {
         if (error) throw error;
       } else {
         // Note: Using 'as any' here due to TypeScript inference limitation with Supabase strict typing
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { error } = await (supabase as any)
           .from('wishlist')
           .insert({ user_id: user.id, product_id: productId });
@@ -144,52 +155,44 @@ export const ProductsPage = () => {
     }
   });
 
-  // SERVER-SIDE PAGINATION: Fetch only products for current page
+  // SERVER-SIDE PAGINATION: Fetch only products for current page using fuzzy search RPC
   const { data: productsData, isLoading, error } = useQuery({
     queryKey: ['products', debouncedSearch, filters.category, filters.sortBy, currentPage],
     queryFn: async () => {
       // Calculate range for current page
       const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-      const endIndex = startIndex + ITEMS_PER_PAGE - 1;
 
-      let query = supabase
+      // Use RPC function for fuzzy search
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: products, error: rpcError } = await (supabase.rpc as any)('search_products', {
+        search_term: debouncedSearch || '',
+        category_filter: filters.category,
+        sort_by: filters.sortBy,
+        page_limit: ITEMS_PER_PAGE,
+        page_offset: startIndex
+      });
+
+      if (rpcError) throw rpcError;
+
+      // Get total count for pagination (using simpler query for count)
+      let countQuery = supabase
         .from('products')
-        .select('*', { count: 'exact' }); // Get total count for pagination
+        .select('*', { count: 'exact', head: true }); // head: true to only get count
 
-      // Apply category filter
       if (filters.category) {
-        query = query.eq('category', filters.category);
+        countQuery = countQuery.eq('category', filters.category);
       }
 
-      // Apply search filter (use debounced value)
       if (debouncedSearch) {
-        query = query.ilike('name', `%${debouncedSearch}%`);
+        // For count, use only ILIKE to avoid trigram operator issues
+        countQuery = countQuery.ilike('name', `%${debouncedSearch}%`);
       }
 
-      // Apply sorting
-      switch (filters.sortBy) {
-        case 'price-asc':
-          query = query.order('price', { ascending: true });
-          break;
-        case 'price-desc':
-          query = query.order('price', { ascending: false });
-          break;
-        case 'rating':
-          query = query.order('rating', { ascending: false });
-          break;
-        case 'newest':
-        default:
-          query = query.order('created_at', { ascending: false });
-      }
-
-      // Apply pagination - fetch only needed rows
-      query = query.range(startIndex, endIndex);
-
-      const { data, error, count } = await query;
-      if (error) throw error;
+      const { count, error: countError } = await countQuery;
+      if (countError) throw countError;
 
       return {
-        products: data as Product[],
+        products: products as Product[],
         totalCount: count || 0
       };
     }
@@ -204,16 +207,26 @@ export const ProductsPage = () => {
       setCurrentPage(1);
     });
 
-    // Update URL parameters for category changes
+    // Update URL parameters for category and search changes
+    const newSearchParams = new URLSearchParams(searchParams);
+
     if (newFilters.category !== undefined) {
-      const newSearchParams = new URLSearchParams(searchParams);
       if (newFilters.category) {
         newSearchParams.set('category', newFilters.category);
       } else {
         newSearchParams.delete('category');
       }
-      setSearchParams(newSearchParams);
     }
+
+    if (newFilters.search !== undefined) {
+      if (newFilters.search.trim()) {
+        newSearchParams.set('search', newFilters.search.trim());
+      } else {
+        newSearchParams.delete('search');
+      }
+    }
+
+    setSearchParams(newSearchParams);
   }, [filters, searchParams, setSearchParams]);
 
   // Pagination: useMemo caches expensive calculations - only recalculates when dependencies change
@@ -263,7 +276,7 @@ export const ProductsPage = () => {
           <select
             className="input"
             value={filters.sortBy}
-            onChange={(e) => handleFilterChange({ sortBy: e.target.value as any })}
+            onChange={(e) => handleFilterChange({ sortBy: e.target.value as ProductFilters['sortBy'] })}
           >
             <option value="newest">Newest</option>
             <option value="price-asc">Price: Low to High</option>
