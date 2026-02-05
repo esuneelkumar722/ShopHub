@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingCart, User, Search, LogOut, Shield, Heart } from 'lucide-react';
-import { AnimatePresence } from 'framer-motion';
+import { ShoppingCart, User, Search, Shield, Heart } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useCartStore } from '../../store/cartStore';
 import { useUserStore } from '../../store/userStore';
 import { supabase } from '../../lib/supabase';
@@ -9,14 +9,50 @@ import { useAdmin } from '../../hooks/useAdmin';
 import { DarkModeToggle } from '../ui/DarkModeToggle';
 import { MiniCart } from '../cart/MiniCart';
 import { useQuery } from '@tanstack/react-query';
+import { UserMenu } from './UserMenu';
+
+// Animated Hamburger Icon Component
+const HamburgerIcon = ({ isOpen }: { isOpen: boolean }) => {
+  return (
+    <motion.div
+      className="w-6 h-6 relative"
+      animate={isOpen ? "open" : "closed"}
+    >
+      <motion.span
+        className="absolute top-0 left-0 w-6 h-0.5 bg-gray-700 dark:bg-gray-200 transform-gpu"
+        variants={{
+          closed: { rotate: 0, y: 0 },
+          open: { rotate: 45, y: 8 }
+        }}
+        transition={{ duration: 0.2 }}
+      />
+      <motion.span
+        className="absolute top-2 left-0 w-6 h-0.5 bg-gray-700 dark:bg-gray-200 transform-gpu"
+        variants={{
+          closed: { opacity: 1 },
+          open: { opacity: 0 }
+        }}
+        transition={{ duration: 0.2 }}
+      />
+      <motion.span
+        className="absolute top-4 left-0 w-6 h-0.5 bg-gray-700 dark:bg-gray-200 transform-gpu"
+        variants={{
+          closed: { rotate: 0, y: 0 },
+          open: { rotate: -45, y: -8 }
+        }}
+        transition={{ duration: 0.2 }}
+      />
+    </motion.div>
+  );
+};
 
 export const Header = () => {
   const totalItems = useCartStore((state) => state.getTotalItems());
   const user = useUserStore((state) => state.user);
-  const setUser = useUserStore((state) => state.setUser);
   const { isAdmin } = useAdmin();
   const navigate = useNavigate();
   const [isMiniCartOpen, setIsMiniCartOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
 
@@ -52,12 +88,6 @@ export const Header = () => {
     }
   }, [suggestions, searchQuery]);
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-    navigate('/');
-  };
-
   const handleSearchSubmit = () => {
     if (searchQuery.trim()) {
       navigate(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
@@ -85,6 +115,15 @@ export const Header = () => {
       <header className="sticky top-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
+            {/* Hamburger Menu */}
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 mr-4"
+              aria-label={isMenuOpen ? "Close user menu" : "Open user menu"}
+            >
+              <HamburgerIcon isOpen={isMenuOpen} />
+            </button>
+
             {/* Logo */}
             <Link to="/" className="flex items-center space-x-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded-lg">
               <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
@@ -169,12 +208,6 @@ export const Header = () => {
 
               {user ? (
                 <div className="flex items-center gap-4">
-                  <Link
-                    to="/orders"
-                    className="text-gray-700 dark:text-gray-200 hover:text-primary-600 dark:hover:text-primary-400 font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded px-2 py-1"
-                  >
-                    Orders
-                  </Link>
                   {isAdmin && (
                     <Link
                       to="/admin"
@@ -189,13 +222,6 @@ export const Header = () => {
                     <User className="w-5 h-5 text-gray-700 dark:text-gray-300" />
                     <span className="font-medium text-gray-900 dark:text-white">{user.full_name}</span>
                   </div>
-                  <button
-                    onClick={handleLogout}
-                    className="text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 rounded p-1"
-                    aria-label="Logout"
-                  >
-                    <LogOut className="w-5 h-5" />
-                  </button>
                 </div>
               ) : (
                 <Link
@@ -213,6 +239,12 @@ export const Header = () => {
       <AnimatePresence>
         {isMiniCartOpen && (
           <MiniCart isOpen={isMiniCartOpen} onClose={() => setIsMiniCartOpen(false)} />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence mode="wait">
+        {isMenuOpen && (
+          <UserMenu onClose={() => setIsMenuOpen(false)} />
         )}
       </AnimatePresence>
     </>
