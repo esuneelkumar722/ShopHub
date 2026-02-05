@@ -54,13 +54,19 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   }, [mode]);
 
   const toggleTheme = () => {
-    setMode((prev) => {
-      // Only toggle between light and dark in header
-      const next = prev === 'light' ? 'dark' : 'light';
-      localStorage.setItem('themeMode', next);
-      setTheme(next);
-      return next;
-    });
+    if (mode === 'system') {
+      // When in system mode, switch to manual mode opposite of current theme
+      const newMode = theme === 'light' ? 'dark' : 'light';
+      setMode(newMode);
+      localStorage.setItem('themeMode', newMode);
+      setTheme(newMode);
+    } else {
+      // Toggle between light and dark
+      const newMode = mode === 'light' ? 'dark' : 'light';
+      setMode(newMode);
+      localStorage.setItem('themeMode', newMode);
+      setTheme(newMode);
+    }
   };
 
   const resetToSystem = () => {
