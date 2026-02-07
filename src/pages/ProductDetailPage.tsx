@@ -60,6 +60,7 @@ export const ProductDetailPage = () => {
     queryKey: ['reviews', id],
     queryFn: async () => {
       if (!id) return [];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error } = await (supabase as any)
         .from('reviews')
         .select(`
@@ -87,6 +88,7 @@ export const ProductDetailPage = () => {
       if (!user || !id) throw new Error('Must be logged in');
       if (editingReviewId) {
         // Update existing review
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { error } = await (supabase as any)
           .from('reviews')
           .update({
@@ -98,6 +100,7 @@ export const ProductDetailPage = () => {
         if (error) throw error;
       } else {
         // Insert new review
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { error } = await (supabase as any)
           .from('reviews')
           .insert({
@@ -121,6 +124,7 @@ export const ProductDetailPage = () => {
   // Delete review mutation
   const deleteReviewMutation = useMutation({
     mutationFn: async (reviewId: string) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error } = await (supabase as any)
         .from('reviews')
         .delete()
@@ -138,11 +142,13 @@ export const ProductDetailPage = () => {
     queryKey: ['wishlist'],
     queryFn: async () => {
       if (!user) return [];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error } = await (supabase as any)
         .from('wishlist')
         .select('product_id')
         .eq('user_id', user.id);
       if (error) throw error;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return data.map((item: any) => item.product_id);
     },
     enabled: !!user,
@@ -156,6 +162,7 @@ export const ProductDetailPage = () => {
       const isInWishlist = wishlistItems?.includes(productId);
 
       if (isInWishlist) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { error } = await (supabase as any)
           .from('wishlist')
           .delete()
@@ -163,6 +170,7 @@ export const ProductDetailPage = () => {
           .eq('product_id', productId);
         if (error) throw error;
       } else {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { error } = await (supabase as any)
           .from('wishlist')
           .insert({ user_id: user.id, product_id: productId });

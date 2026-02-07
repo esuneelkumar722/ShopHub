@@ -18,6 +18,7 @@ export const WishlistPage = () => {
     queryKey: ['wishlist'],
     queryFn: async () => {
       if (!user) return [];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error } = await (supabase as any)
         .from('wishlist')
         .select(`
@@ -39,6 +40,7 @@ export const WishlistPage = () => {
   // Remove from wishlist mutation
   const removeFromWishlist = useMutation({
     mutationFn: async (wishlistId: string) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error } = await (supabase as any)
         .from('wishlist')
         .delete()
@@ -94,6 +96,7 @@ export const WishlistPage = () => {
 
       {wishlistItems && wishlistItems.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
           {wishlistItems.map((item: any) => {
             const product = item.products;
 

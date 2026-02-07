@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
@@ -9,6 +9,7 @@ import { useAdmin } from '../../hooks/useAdmin';
 import { ArrowLeft } from 'lucide-react';
 import { ImageUploader } from '../../components/admin/ImageUploader';
 import type { ProductImage } from '../../types';
+import type { Database } from '../../types/supabase';
 
 const productSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -29,7 +30,7 @@ export const AdminProductForm = () => {
   const queryClient = useQueryClient();
   const { isAdmin } = useAdmin();
   const isEditMode = !!id;
-  const [productImages, setProductImages] = useState<ProductImage[]>([]);
+  // const [productImages, setProductImages] = useState<ProductImage[]>([]);
 
   // Fetch existing product if editing
   const { data: product } = useQuery({
@@ -60,17 +61,10 @@ export const AdminProductForm = () => {
         .order('display_order');
 
       if (error) throw error;
-      return (data || []) as unknown as ProductImage[];
+      return (data || []) as ProductImage[];
     },
     enabled: isEditMode && isAdmin,
   });
-
-  // Update local state when images load
-  useEffect(() => {
-    if (images) {
-      setProductImages(images);
-    }
-  }, [images]);
 
   const {
     register,
@@ -88,12 +82,12 @@ export const AdminProductForm = () => {
   // Reset form when product data loads
   useEffect(() => {
     if (product) {
-      const p = product as any;
+      const p = product as Database['public']['Tables']['products']['Row'];
       reset({
         name: p.name,
         description: p.description,
         price: Number(p.price),
-        category: p.category,
+        category: p.category as ProductForm['category'],
         image_url: p.image_url,
         stock: p.stock,
         rating: p.rating || 0,
@@ -108,6 +102,7 @@ export const AdminProductForm = () => {
       if (isEditMode) {
         if (!id) throw new Error('Product ID is required');
         // Note: Using 'as any' due to TypeScript strict mode with Supabase update types
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { error } = await (supabase as any)
           .from('products')
           .update(data)
@@ -115,6 +110,7 @@ export const AdminProductForm = () => {
         if (error) throw error;
       } else {
         // Note: Using 'as any' due to TypeScript strict mode with Supabase insert types
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { error } = await (supabase as any).from('products').insert([data]);
         if (error) throw error;
       }
@@ -323,7 +319,7 @@ export const AdminProductForm = () => {
           <div className="card mt-8">
             <ImageUploader
               productId={id}
-              existingImages={productImages}
+              existingImages={images || []}
               onImagesUpdated={() => {
                 queryClient.invalidateQueries({ queryKey: ['product-images', id] });
               }}

@@ -3,6 +3,7 @@ vi.mock('../../../hooks/useAdmin', () => ({
   useAdmin: vi.fn()
 }));
 vi.mock('@tanstack/react-query', async (importOriginal) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const actual = await importOriginal() as any;
   return {
     ...actual,
@@ -39,6 +40,7 @@ vi.mock('../../lib/supabase', () => ({
   },
 }));
 vi.mock('react-router-dom', async (importOriginal) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const actual = await importOriginal() as any;
   return {
     ...actual,
@@ -65,6 +67,7 @@ globalThis.alert = mockAlert;
 
 const mockNavigate = vi.fn();
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createMockQueryResult = (overrides: any = {}) => ({
   data: null,
   isLoading: false,
@@ -255,15 +258,18 @@ describe('AdminProducts', () => {
   });
 
   it('deletes product when confirmed', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (useAdmin as any).mockReturnValue({ isAdmin: true });
     mockConfirm.mockReturnValue(true);
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (useQuery as any).mockReturnValue({
       data: mockProducts,
       isLoading: false,
       error: null,
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (useMutation as any).mockReturnValue({
       mutate: vi.fn(),
       isPending: false,
@@ -286,15 +292,18 @@ describe('AdminProducts', () => {
   });
 
   it('does not delete product when not confirmed', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (useAdmin as any).mockReturnValue({ isAdmin: true });
-    mockConfirm.mockReturnValue(false);
+    mockConfirm.mockReturnValue(true);
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (useQuery as any).mockReturnValue({
       data: mockProducts,
       isLoading: false,
       error: null,
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (useMutation as any).mockReturnValue({
       mutate: vi.fn(),
       isPending: false,

@@ -4,7 +4,13 @@ import { vi } from 'vitest';
 // Mock framer-motion
 vi.mock('framer-motion', () => ({
   motion: {
-    button: ({ children, onClick, disabled, className, whileTap, ...props }: any) => (
+    button: ({ children, onClick, disabled, className, ...props }: {
+      children: React.ReactNode;
+      onClick?: () => void;
+      disabled?: boolean;
+      className?: string;
+      [key: string]: unknown;
+    }) => (
       <button
         onClick={onClick}
         disabled={disabled}
@@ -14,7 +20,11 @@ vi.mock('framer-motion', () => ({
         {children}
       </button>
     ),
-    div: ({ children, className, initial, animate, transition, ...props }: any) => (
+    div: ({ children, className, ...props }: {
+      children: React.ReactNode;
+      className?: string;
+      [key: string]: unknown;
+    }) => (
       <div className={className} {...props}>
         {children}
       </div>

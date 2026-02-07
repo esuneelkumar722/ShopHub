@@ -3,7 +3,7 @@ import { act, renderHook } from '@testing-library/react';
 import { useCartStore } from '../../store/cartStore';
 
 // Mock crypto.randomUUID
-Object.defineProperty(global, 'crypto', {
+Object.defineProperty(globalThis, 'crypto', {
   value: {
     randomUUID: () => 'mock-uuid'
   }
@@ -33,8 +33,14 @@ describe('useCartStore', () => {
     const product = {
       id: 'prod1',
       name: 'Test Product',
+      description: 'A test product',
       price: 25.99,
-      image_url: 'test.jpg'
+      category: 'test',
+      image_url: 'test.jpg',
+      stock: 10,
+      rating: 4.5,
+      reviews_count: 5,
+      created_at: '2024-01-01'
     };
 
     act(() => {
@@ -58,8 +64,14 @@ describe('useCartStore', () => {
     const product = {
       id: 'prod1',
       name: 'Test Product',
+      description: 'A test product',
       price: 25.99,
-      image_url: 'test.jpg'
+      category: 'test',
+      image_url: 'test.jpg',
+      stock: 10,
+      rating: 4.5,
+      reviews_count: 5,
+      created_at: '2024-01-01'
     };
 
     act(() => {
@@ -79,8 +91,14 @@ describe('useCartStore', () => {
     const product = {
       id: 'prod1',
       name: 'Test Product',
+      description: 'A test product',
       price: 25.99,
-      image_url: 'test.jpg'
+      category: 'test',
+      image_url: 'test.jpg',
+      stock: 10,
+      rating: 4.5,
+      reviews_count: 5,
+      created_at: '2024-01-01'
     };
 
     act(() => {
@@ -99,8 +117,14 @@ describe('useCartStore', () => {
     const product = {
       id: 'prod1',
       name: 'Test Product',
+      description: 'A test product',
       price: 25.99,
-      image_url: 'test.jpg'
+      category: 'test',
+      image_url: 'test.jpg',
+      stock: 10,
+      rating: 4.5,
+      reviews_count: 5,
+      created_at: '2024-01-01'
     };
 
     act(() => {
@@ -119,8 +143,14 @@ describe('useCartStore', () => {
     const product = {
       id: 'prod1',
       name: 'Test Product',
+      description: 'A test product',
       price: 25.99,
-      image_url: 'test.jpg'
+      category: 'test',
+      image_url: 'test.jpg',
+      stock: 10,
+      rating: 4.5,
+      reviews_count: 5,
+      created_at: '2024-01-01'
     };
 
     act(() => {
@@ -137,15 +167,27 @@ describe('useCartStore', () => {
     const product1 = {
       id: 'prod1',
       name: 'Product 1',
+      description: 'A test product 1',
       price: 25.99,
-      image_url: 'test1.jpg'
+      category: 'test',
+      image_url: 'test1.jpg',
+      stock: 10,
+      rating: 4.5,
+      reviews_count: 5,
+      created_at: '2024-01-01'
     };
 
     const product2 = {
       id: 'prod2',
       name: 'Product 2',
+      description: 'A test product 2',
       price: 15.99,
-      image_url: 'test2.jpg'
+      category: 'test',
+      image_url: 'test2.jpg',
+      stock: 10,
+      rating: 4.5,
+      reviews_count: 5,
+      created_at: '2024-01-01'
     };
 
     act(() => {
@@ -165,15 +207,27 @@ describe('useCartStore', () => {
     const product1 = {
       id: 'prod1',
       name: 'Product 1',
+      description: 'A test product 1',
       price: 25.99,
-      image_url: 'test1.jpg'
+      category: 'test',
+      image_url: 'test1.jpg',
+      stock: 10,
+      rating: 4.5,
+      reviews_count: 5,
+      created_at: '2024-01-01'
     };
 
     const product2 = {
       id: 'prod2',
       name: 'Product 2',
+      description: 'A test product 2',
       price: 15.99,
-      image_url: 'test2.jpg'
+      category: 'test',
+      image_url: 'test2.jpg',
+      stock: 10,
+      rating: 4.5,
+      reviews_count: 5,
+      created_at: '2024-01-01'
     };
 
     act(() => {
@@ -191,15 +245,27 @@ describe('useCartStore', () => {
     const product1 = {
       id: 'prod1',
       name: 'Product 1',
+      description: 'A test product 1',
       price: 25.99,
-      image_url: 'test1.jpg'
+      category: 'test',
+      image_url: 'test1.jpg',
+      stock: 10,
+      rating: 4.5,
+      reviews_count: 5,
+      created_at: '2024-01-01'
     };
 
     const product2 = {
       id: 'prod2',
       name: 'Product 2',
+      description: 'A test product 2',
       price: 15.99,
-      image_url: 'test2.jpg'
+      category: 'test',
+      image_url: 'test2.jpg',
+      stock: 10,
+      rating: 4.5,
+      reviews_count: 5,
+      created_at: '2024-01-01'
     };
 
     act(() => {

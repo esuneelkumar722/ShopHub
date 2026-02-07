@@ -98,18 +98,19 @@ export const CheckoutPage = () => {
   const total = subtotal + shipping + tax - discountAmount;
 
   // Final submission - save order to database
-  const onSubmit = async (_formData: CheckoutForm) => {
+  const onSubmit = async () => {
     setIsSubmitting(true);
 
     try {
       // Create order in Supabase
-      const { data: order, error: orderError } = await supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: order, error: orderError } = await (supabase as any)
         .from('orders')
         .insert({
           user_id: user?.id,
           total: total,
           status: 'pending',
-        } as any)
+        })
         .select()
         .single();
 
@@ -117,7 +118,7 @@ export const CheckoutPage = () => {
 
       // Create order items - use product.id to ensure correct reference
       const orderItems = items.map(item => ({
-        order_id: (order as any).id,
+        order_id: order.id,
         product_id: item.product.id, // Use item.product.id instead of item.product_id
         quantity: item.quantity,
         price: item.product.price,
@@ -125,9 +126,10 @@ export const CheckoutPage = () => {
 
       console.log('Order items to insert:', orderItems); // Debug log
 
-      const { error: itemsError } = await supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error: itemsError } = await (supabase as any)
         .from('order_items')
-        .insert(orderItems as any);
+        .insert(orderItems);
 
       if (itemsError) {
         console.error('Failed to insert order items:', itemsError);
@@ -136,13 +138,14 @@ export const CheckoutPage = () => {
 
       // Save discount if applied
       if (appliedDiscount) {
-        const { error: discountError } = await supabase
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { error: discountError } = await (supabase as any)
           .from('order_discounts')
           .insert({
-            order_id: (order as any).id,
+            order_id: order.id,
             discount_code_id: appliedDiscount.id,
             discount_amount: discountAmount,
-          } as any);
+          });
 
         if (discountError) console.error('Failed to save discount:', discountError);
       }

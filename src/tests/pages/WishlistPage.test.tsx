@@ -5,6 +5,7 @@ import { renderWithProviders } from '../renderWithProviders';
 
 // Mock dependencies
 vi.mock('@tanstack/react-query', async (importOriginal) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const actual = await importOriginal() as any;
   return {
     ...actual,
@@ -28,6 +29,7 @@ vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom');
   return {
     ...actual,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     Link: ({ children, ...props }: any) => <a {...props}>{children}</a>
   };
 });
@@ -58,6 +60,7 @@ const mockWishlistData = [
 describe('WishlistPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockUseQuery.mockImplementation((options: any) => {
       if (options.queryKey?.[0] === 'wishlist') {
         return {
@@ -82,6 +85,7 @@ describe('WishlistPage', () => {
           isStale: false,
           refetch: vi.fn(),
           fetchStatus: 'idle'
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any;
       }
       return {
@@ -106,6 +110,7 @@ describe('WishlistPage', () => {
         isStale: false,
         refetch: vi.fn(),
         fetchStatus: 'idle'
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any;
     });
 
@@ -124,10 +129,12 @@ describe('WishlistPage', () => {
       submittedAt: 0,
       failureCount: 0,
       failureReason: null
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
   });
 
   it('renders loading state initially', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockUseQuery.mockImplementationOnce((options: any) => {
       if (options.queryKey?.[0] === 'wishlist') {
         return {
@@ -152,6 +159,7 @@ describe('WishlistPage', () => {
           isStale: true,
           refetch: vi.fn(),
           fetchStatus: 'fetching'
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any;
       }
       return {
@@ -176,6 +184,7 @@ describe('WishlistPage', () => {
         isStale: false,
         refetch: vi.fn(),
         fetchStatus: 'idle'
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any;
     });
 
@@ -195,6 +204,7 @@ describe('WishlistPage', () => {
   });
 
   it('renders empty wishlist message when no items', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockUseQuery.mockImplementationOnce((options: any) => {
       if (options.queryKey?.[0] === 'wishlist') {
         return {
@@ -219,6 +229,7 @@ describe('WishlistPage', () => {
           isStale: false,
           refetch: vi.fn(),
           fetchStatus: 'idle'
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any;
       }
       return {
@@ -243,6 +254,7 @@ describe('WishlistPage', () => {
         isStale: false,
         refetch: vi.fn(),
         fetchStatus: 'idle'
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any;
     });
 
@@ -255,6 +267,7 @@ describe('WishlistPage', () => {
   });
 
   it('renders browse products link when empty', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockUseQuery.mockImplementationOnce((options: any) => {
       if (options.queryKey?.[0] === 'wishlist') {
         return {
@@ -279,6 +292,7 @@ describe('WishlistPage', () => {
           isStale: false,
           refetch: vi.fn(),
           fetchStatus: 'idle'
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any;
       }
       return {
@@ -303,6 +317,7 @@ describe('WishlistPage', () => {
         isStale: false,
         refetch: vi.fn(),
         fetchStatus: 'idle'
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any;
     });
 
@@ -330,6 +345,7 @@ describe('WishlistPage', () => {
       submittedAt: 0,
       failureCount: 0,
       failureReason: null
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
     renderWithProviders(<WishlistPage />);

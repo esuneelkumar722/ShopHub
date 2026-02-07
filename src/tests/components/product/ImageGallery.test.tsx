@@ -1,12 +1,13 @@
 // Mock framer-motion
 vi.mock('framer-motion', () => ({
   motion: {
-    img: ({ children, ...props }: any) => <img {...props} />,
+    img: (props: React.ImgHTMLAttributes<HTMLImageElement>) => React.createElement('img', props),
   },
 }));
 
 import { renderWithProviders, screen, fireEvent } from '../../renderWithProviders';
 import { vi } from 'vitest';
+import React from 'react';
 import { ImageGallery } from '../../../components/product/ImageGallery';
 
 const mockImages = [
@@ -201,7 +202,7 @@ describe('ImageGallery', () => {
       currentTarget: {
         getBoundingClientRect: () => ({ left: 0, top: 0, width: 200, height: 200 }),
       },
-    } as any);
+    });
 
     // Leave mouse
     fireEvent.mouseLeave(imageContainer);

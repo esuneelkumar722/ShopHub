@@ -86,6 +86,7 @@ describe('HomePage', () => {
   it('handles empty categories gracefully', async () => {
     // Mock empty response
     const { supabase } = await import('../../lib/supabase');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const supabaseMock = supabase as any;
     supabaseMock.from.mockReturnValue({
       select: vi.fn(() => ({

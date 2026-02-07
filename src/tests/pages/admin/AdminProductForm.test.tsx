@@ -3,6 +3,7 @@ vi.mock('../../../hooks/useAdmin', () => ({
   useAdmin: vi.fn()
 }));
 vi.mock('@tanstack/react-query', async (importOriginal) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const actual = await importOriginal() as any;
   return {
     ...actual,
@@ -17,6 +18,7 @@ vi.mock('react-hook-form', () => ({
 }));
 vi.mock('@hookform/resolvers/zod');
 vi.mock('react-router-dom', async (importOriginal) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const actual = await importOriginal() as any;
   return {
     ...actual,
@@ -91,6 +93,7 @@ describe('AdminProductForm', () => {
       clearErrors: vi.fn(),
       setValue: vi.fn(),
       trigger: vi.fn(),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       control: {} as any,
       setFocus: vi.fn(),
       unregister: vi.fn(),
@@ -119,6 +122,7 @@ describe('AdminProductForm', () => {
       isStale: false,
       refetch: vi.fn(),
       fetchStatus: 'idle'
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
     mockUseMutation.mockReturnValue({
       mutate: vi.fn(),
@@ -135,6 +139,7 @@ describe('AdminProductForm', () => {
       submittedAt: 0,
       failureCount: 0,
       failureReason: null
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
   });
 
@@ -174,6 +179,7 @@ describe('AdminProductForm', () => {
       isStale: false,
       refetch: vi.fn(),
       fetchStatus: 'idle'
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
     renderWithProviders(<AdminProductForm />);
     expect(screen.getByText('Edit Product')).toBeInTheDocument();
@@ -212,6 +218,7 @@ describe('AdminProductForm', () => {
       clearErrors: vi.fn(),
       setValue: vi.fn(),
       trigger: vi.fn(),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       control: {} as any,
       setFocus: vi.fn(),
       unregister: vi.fn(),
@@ -240,6 +247,7 @@ describe('AdminProductForm', () => {
       submittedAt: 0,
       failureCount: 0,
       failureReason: null
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
     const mockOnSubmit = vi.fn();
@@ -268,6 +276,7 @@ describe('AdminProductForm', () => {
       submittedAt: Date.now(),
       failureCount: 0,
       failureReason: null
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
     renderWithProviders(<AdminProductForm />);
@@ -312,6 +321,7 @@ describe('AdminProductForm', () => {
       isStale: false,
       refetch: vi.fn(),
       fetchStatus: 'idle'
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
     renderWithProviders(<AdminProductForm />);
     // ImageUploader component should be rendered in edit mode

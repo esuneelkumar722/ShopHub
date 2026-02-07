@@ -11,7 +11,7 @@ vi.mock('lucide-react', () => ({
 
 describe('DarkModeToggle', () => {
   beforeEach(() => {
-    localStorage.removeItem('theme')
+    localStorage.removeItem('themeMode')
     document.documentElement.classList.remove('dark')
     vi.clearAllMocks()
   })
@@ -30,7 +30,7 @@ describe('DarkModeToggle', () => {
   })
 
   it('renders with dark theme when stored in localStorage', () => {
-    localStorage.setItem('theme', 'dark')
+    localStorage.setItem('themeMode', 'dark')
     renderWithProviders(<DarkModeToggle />)
 
     const button = screen.getByRole('button')
@@ -43,7 +43,7 @@ describe('DarkModeToggle', () => {
   })
 
   it('toggles from light to dark theme', () => {
-    localStorage.setItem('theme', 'light')
+    localStorage.setItem('themeMode', 'light')
     renderWithProviders(<DarkModeToggle />)
 
     const button = screen.getByRole('button')
@@ -60,11 +60,11 @@ describe('DarkModeToggle', () => {
     expect(button).toHaveAttribute('aria-label', 'Switch to light mode')
     expect(screen.getByTestId('sun-icon')).toBeInTheDocument()
     expect(document.documentElement.classList.contains('dark')).toBe(true)
-    expect(localStorage.getItem('theme')).toBe('dark')
+    expect(localStorage.getItem('themeMode')).toBe('dark')
   })
 
   it('toggles from dark to light theme', () => {
-    localStorage.setItem('theme', 'dark')
+    localStorage.setItem('themeMode', 'dark')
     renderWithProviders(<DarkModeToggle />)
 
     const button = screen.getByRole('button')
@@ -81,7 +81,7 @@ describe('DarkModeToggle', () => {
     expect(button).toHaveAttribute('aria-label', 'Switch to dark mode')
     expect(screen.getByTestId('moon-icon')).toBeInTheDocument()
     expect(document.documentElement.classList.contains('dark')).toBe(false)
-    expect(localStorage.getItem('theme')).toBe('light')
+    expect(localStorage.getItem('themeMode')).toBe('light')
   })
 
   it('applies correct CSS classes', () => {
@@ -113,19 +113,19 @@ describe('DarkModeToggle', () => {
 
     const button = screen.getByRole('button')
 
-    // Start with light theme
+    // Start with system theme (default)
     expect(document.documentElement.classList.contains('dark')).toBe(false)
-    expect(localStorage.getItem('theme')).toBe('light')
+    expect(localStorage.getItem('themeMode')).toBe(null)
 
     // Toggle to dark
     fireEvent.click(button)
     expect(document.documentElement.classList.contains('dark')).toBe(true)
-    expect(localStorage.getItem('theme')).toBe('dark')
+    expect(localStorage.getItem('themeMode')).toBe('dark')
 
     // Toggle back to light
     fireEvent.click(button)
     expect(document.documentElement.classList.contains('dark')).toBe(false)
-    expect(localStorage.getItem('theme')).toBe('light')
+    expect(localStorage.getItem('themeMode')).toBe('light')
   })
 
   it('has proper keyboard accessibility', () => {

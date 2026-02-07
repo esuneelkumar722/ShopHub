@@ -3,6 +3,7 @@ vi.mock('../../../hooks/useAdmin', () => ({
   useAdmin: vi.fn()
 }));
 vi.mock('@tanstack/react-query', async (importOriginal) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const actual = await importOriginal() as any;
   return {
     ...actual,
@@ -66,7 +67,7 @@ describe('AdminDashboard', () => {
     mockUseAdmin.mockReturnValue({ isAdmin: false, isLoading: false });
     renderWithProviders(<AdminDashboard />);
     expect(screen.getByText('Access Denied')).toBeInTheDocument();
-    expect(screen.getByText(/don\'t have permission/i)).toBeInTheDocument();
+    expect(screen.getByText(/don't have permission/i)).toBeInTheDocument();
     expect(screen.getByText('Go Home →')).toBeInTheDocument();
   });
 });

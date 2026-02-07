@@ -6,7 +6,15 @@ import type { CartItem, Product } from '../../../types';
 // Mock framer-motion
 vi.mock('framer-motion', () => ({
   motion: {
-    div: ({ children, className, onClick, initial, animate, exit, transition, role, 'aria-label': ariaLabel, 'aria-modal': ariaModal, ...props }: any) => (
+    div: ({ children, className, onClick, role, 'aria-label': ariaLabel, 'aria-modal': ariaModal, ...props }: {
+      children: React.ReactNode;
+      className?: string;
+      onClick?: () => void;
+      role?: string;
+      'aria-label'?: string;
+      'aria-modal'?: boolean;
+      [key: string]: unknown;
+    }) => (
       <div
         className={className}
         onClick={onClick}
@@ -39,7 +47,7 @@ const { mockCartStore, mockUseCartStore } = vi.hoisted(() => {
     getTotalItems: vi.fn(() => 0),
   };
 
-  const mockUseCartStore = vi.fn((selector: any) => {
+  const mockUseCartStore = vi.fn((selector?: (state: typeof mockCartStore) => unknown) => {
     console.log('mockUseCartStore called, selector:', selector ? 'YES' : 'NO');
     console.log('mockCartStore.items at call time:', mockCartStore.items.length);
     if (selector) {

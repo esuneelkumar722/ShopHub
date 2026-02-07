@@ -49,7 +49,7 @@ describe('useUserStore', () => {
   it('transfers guest cart when user logs in', async () => {
     const { useCartStore } = await import('../../store/cartStore');
     const mockTransferGuestToUser = vi.fn();
-    (useCartStore as any).getState = vi.fn().mockReturnValue({
+    (useCartStore as unknown as { getState: typeof vi.fn }).getState = vi.fn().mockReturnValue({
       transferGuestToUser: mockTransferGuestToUser,
       setUserId: vi.fn()
     });
@@ -74,7 +74,7 @@ describe('useUserStore', () => {
   it('clears user cart when user logs out', async () => {
     const { useCartStore } = await import('../../store/cartStore');
     const mockSetUserId = vi.fn();
-    (useCartStore as any).getState = vi.fn().mockReturnValue({
+    (useCartStore as unknown as { getState: typeof vi.fn }).getState = vi.fn().mockReturnValue({
       transferGuestToUser: vi.fn(),
       setUserId: mockSetUserId
     });

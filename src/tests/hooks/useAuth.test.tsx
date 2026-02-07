@@ -6,7 +6,7 @@ import { supabase } from '../../lib/supabase';
 // Mock dependencies
 vi.mock('../../lib/supabase', () => {
   const mockGetSession = vi.fn();
-  const mockOnAuthStateChange = vi.fn((_callback?: any) => ({
+  const mockOnAuthStateChange = vi.fn(() => ({
     data: { subscription: { unsubscribe: vi.fn() } }
   }));
 

@@ -3,10 +3,6 @@ import { screen, fireEvent, render, waitFor } from '@testing-library/react';
 import { NetworkErrorBoundary } from "../../../components/error/NetworkErrorBoundary";
 
 // Mock navigator.onLine
-const mockNavigator = {
-  onLine: true
-};
-
 Object.defineProperty(navigator, 'onLine', {
   writable: true,
   value: true

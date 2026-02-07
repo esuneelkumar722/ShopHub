@@ -5,26 +5,27 @@ import { Header } from '../../../components/layout/Header';
 
 // Mock all external dependencies
 vi.mock('lucide-react', () => ({
-  ShoppingCart: (props: any) => <svg data-testid="icon-cart" {...props} />,
-  User: (props: any) => <svg data-testid="icon-user" {...props} />,
-  Search: (props: any) => <svg data-testid="icon-search" {...props} />,
-  LogOut: (props: any) => <svg data-testid="icon-logout" {...props} />,
-  Shield: (props: any) => <svg data-testid="icon-shield" {...props} />,
-  Heart: (props: any) => <svg data-testid="icon-heart" {...props} />,
-  Moon: (props: any) => <svg data-testid="icon-moon" {...props} />,
-  Sun: (props: any) => <svg data-testid="icon-sun" {...props} />,
-  X: (props: any) => <svg data-testid="icon-x" {...props} />,
+  ShoppingCart: (props: React.SVGProps<SVGSVGElement>) => <svg data-testid="icon-cart" {...props} />,
+  User: (props: React.SVGProps<SVGSVGElement>) => <svg data-testid="icon-user" {...props} />,
+  Search: (props: React.SVGProps<SVGSVGElement>) => <svg data-testid="icon-search" {...props} />,
+  LogOut: (props: React.SVGProps<SVGSVGElement>) => <svg data-testid="icon-logout" {...props} />,
+  Shield: (props: React.SVGProps<SVGSVGElement>) => <svg data-testid="icon-shield" {...props} />,
+  Heart: (props: React.SVGProps<SVGSVGElement>) => <svg data-testid="icon-heart" {...props} />,
+  Moon: (props: React.SVGProps<SVGSVGElement>) => <svg data-testid="icon-moon" {...props} />,
+  Sun: (props: React.SVGProps<SVGSVGElement>) => <svg data-testid="icon-sun" {...props} />,
+  X: (props: React.SVGProps<SVGSVGElement>) => <svg data-testid="icon-x" {...props} />,
+  Package: (props: React.SVGProps<SVGSVGElement>) => <svg data-testid="icon-package" {...props} />,
 }));
 
 vi.mock('../../../store/cartStore', () => ({
-  useCartStore: (fn: any) => fn({ getTotalItems: () => 2 }),
+  useCartStore: (fn: (state: { getTotalItems: () => number }) => unknown) => fn({ getTotalItems: () => 2 }),
 }));
 
 const mockUser = { full_name: 'Test User' };
 let userState: { full_name: string } | null = mockUser;
 const setUser = vi.fn((u) => { userState = u; });
 vi.mock('../../../store/userStore', () => ({
-  useUserStore: (fn: any) => fn({ user: userState, setUser }),
+  useUserStore: (fn: (state: { user: { full_name: string } | null; setUser: (user: { full_name: string } | null) => void }) => unknown) => fn({ user: userState, setUser }),
 }));
 
 vi.mock('../../../hooks/useAdmin', () => ({
@@ -40,7 +41,7 @@ vi.mock('../../../components/ui/DarkModeToggle', () => ({
 }));
 
 vi.mock('../../../components/cart/MiniCart', () => ({
-  MiniCart: ({ isOpen, onClose }: any) => isOpen ? (
+  MiniCart: ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => isOpen ? (
     <div data-testid="minicart">
       <button onClick={onClose}>Close</button>
       <span>MiniCart Content</span>
@@ -51,7 +52,7 @@ vi.mock('../../../components/cart/MiniCart', () => ({
 // Mock useNavigate
 const mockNavigate = vi.fn();
 vi.mock('react-router-dom', async (importOriginal) => {
-  const actual = await importOriginal() as Record<string, any>;
+  const actual = await importOriginal() as Record<string, unknown>;
   return {
     ...actual,
     useNavigate: () => mockNavigate,
@@ -81,6 +82,8 @@ describe('Header', () => {
 
   it('shows wishlist and orders links for logged-in user', () => {
     renderWithProviders(<Header />);
+    // Open the user menu
+    fireEvent.click(screen.getByLabelText('Open user menu'));
     expect(screen.getByLabelText('Wishlist')).toBeInTheDocument();
     expect(screen.getByText('Orders')).toBeInTheDocument();
   });
@@ -90,15 +93,18 @@ describe('Header', () => {
     expect(screen.getByLabelText('Admin Panel')).toBeInTheDocument();
   });
 
-  it('shows user name and logout button', () => {
+  it('shows user name and menu button', () => {
     renderWithProviders(<Header />);
     expect(screen.getByText('Test User')).toBeInTheDocument();
-    expect(screen.getByLabelText('Logout')).toBeInTheDocument();
+    expect(screen.getByLabelText('Open user menu')).toBeInTheDocument();
   });
 
   it('calls logout and navigates home', async () => {
     renderWithProviders(<Header />);
-    fireEvent.click(screen.getByLabelText('Logout'));
+    // Open the user menu
+    fireEvent.click(screen.getByLabelText('Open user menu'));
+    // Click logout in the menu
+    fireEvent.click(screen.getByText('Logout'));
     await waitFor(() => {
       expect(setUser).toHaveBeenCalledWith(null);
       expect(mockNavigate).toHaveBeenCalledWith('/');
@@ -111,6 +117,22 @@ describe('Header', () => {
     expect(screen.getByTestId('minicart')).toBeInTheDocument();
     fireEvent.click(screen.getByText('Close'));
     expect(screen.queryByTestId('minicart')).not.toBeInTheDocument();
+  });
+
+  it('opens and closes user menu', async () => {
+    renderWithProviders(<Header />);
+    // Menu should not be open initially
+    expect(screen.queryByText('Menu')).not.toBeInTheDocument();
+    
+    // Open menu
+    fireEvent.click(screen.getByLabelText('Open user menu'));
+    expect(screen.getByText('Menu')).toBeInTheDocument();
+    
+    // Close menu
+    fireEvent.click(screen.getByLabelText('Close menu'));
+    await waitFor(() => {
+      expect(screen.queryByText('Menu')).not.toBeInTheDocument();
+    });
   });
 
   it('shows Sign In button when user is not logged in', () => {

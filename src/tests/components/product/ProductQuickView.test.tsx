@@ -1,6 +1,7 @@
 import { renderWithProviders, screen, fireEvent, waitFor } from '../../renderWithProviders';
 import { MemoryRouter } from 'react-router-dom';
 import { vi } from 'vitest';
+import React from 'react';
 import type { Product } from '../../../types';
 import { ProductQuickView } from '../../../components/product/ProductQuickView';
 
@@ -12,19 +13,7 @@ const mockCartStore = {
 // Mock framer-motion
 vi.mock('framer-motion', () => ({
   motion: {
-    div: ({ children, className, onClick, initial, animate, exit, onKeyDown, role, 'aria-modal': ariaModal, 'aria-labelledby': ariaLabelledby, ...props }: any) => (
-      <div
-        className={className}
-        onClick={onClick}
-        onKeyDown={onKeyDown}
-        role={role}
-        aria-modal={ariaModal}
-        aria-labelledby={ariaLabelledby}
-        {...props}
-      >
-        {children}
-      </div>
-    ),
+    div: ({ children, className, onClick, onKeyDown, role, 'aria-modal': ariaModal, 'aria-labelledby': ariaLabelledby, ...props }: React.ComponentProps<'div'>) => React.createElement('div', { children, className, onClick, onKeyDown, role, 'aria-modal': ariaModal, 'aria-labelledby': ariaLabelledby, ...props }),
   },
 }));
 
@@ -190,7 +179,7 @@ describe('ProductQuickView', () => {
     fireEvent.click(addButton);
 
     await waitFor(() => {
-      expect((sonner as any).toast.success).toHaveBeenCalled();
+      expect(vi.mocked(sonner.toast.success)).toHaveBeenCalled();
     });
   });
 

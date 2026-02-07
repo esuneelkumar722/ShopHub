@@ -24,6 +24,8 @@ type Order = {
   };
 };
 
+type FetchedOrder = Omit<Order, 'user'>;
+
 export const AdminOrders = () => {
   const { isAdmin } = useAdmin();
   const queryClient = useQueryClient();
@@ -56,19 +58,19 @@ export const AdminOrders = () => {
 
       // Fetch user details separately
       const ordersWithUsers = await Promise.all(
-        data.map(async (order: { user_id: string; [key: string]: any }) => {
+        data.map(async (order: FetchedOrder) => {
           const { data: userData } = await supabase
             .from('users')
             .select('email, full_name')
             .eq('id', order.user_id)
             .single();
 
-          return { ...order, user: userData };
+          return { ...order, user: userData ? userData : undefined };
         })
       );
 
       // Note: Type assertion needed due to dynamic user field addition
-      return ordersWithUsers as any as Order[];
+      return ordersWithUsers as Order[];
     },
     enabled: isAdmin,
   });
@@ -77,6 +79,7 @@ export const AdminOrders = () => {
   const updateStatusMutation = useMutation({
     mutationFn: async ({ orderId, status }: { orderId: string; status: string }) => {
       // Note: Using 'as any' due to TypeScript strict mode with Supabase update types
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error } = await (supabase as any)
         .from('orders')
         .update({ status })

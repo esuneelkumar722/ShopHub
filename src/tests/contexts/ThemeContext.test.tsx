@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { ThemeProvider, useTheme } from '../../contexts/ThemeContext';
+import { ThemeProvider } from '../../contexts/ThemeContext';
+import { useTheme } from '../../hooks/useTheme';
 
 // Mock localStorage
 const localStorageMock = {
@@ -17,7 +18,9 @@ Object.defineProperty(window, 'localStorage', {
 // Mock matchMedia
 Object.defineProperty(window, 'matchMedia', {
   value: vi.fn(() => ({
-    matches: false
+    matches: false,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn()
   }))
 });
 
@@ -56,7 +59,12 @@ describe('ThemeProvider', () => {
 
   it('defaults to light theme when no stored preference', () => {
     localStorageMock.getItem.mockReturnValue(null);
-    window.matchMedia.mockReturnValue({ matches: false });
+    const matchMediaMock = vi.fn(() => ({
+      matches: false,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn()
+    })) as unknown as typeof window.matchMedia;
+    window.matchMedia = matchMediaMock;
 
     render(
       <ThemeProvider>
@@ -65,12 +73,17 @@ describe('ThemeProvider', () => {
     );
 
     expect(screen.getByTestId('theme')).toHaveTextContent('light');
-    expect(localStorageMock.getItem).toHaveBeenCalledWith('theme');
+    expect(localStorageMock.getItem).toHaveBeenCalledWith('themeMode');
   });
 
   it('defaults to dark theme when system prefers dark', () => {
     localStorageMock.getItem.mockReturnValue(null);
-    window.matchMedia.mockReturnValue({ matches: true });
+    const matchMediaMock = vi.fn(() => ({
+      matches: true,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn()
+    })) as unknown as typeof window.matchMedia;
+    window.matchMedia = matchMediaMock;
 
     render(
       <ThemeProvider>
@@ -95,7 +108,12 @@ describe('ThemeProvider', () => {
 
   it('ignores invalid stored theme values', () => {
     localStorageMock.getItem.mockReturnValue('invalid');
-    window.matchMedia.mockReturnValue({ matches: false });
+    const matchMediaMock = vi.fn(() => ({
+      matches: false,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn()
+    })) as unknown as typeof window.matchMedia;
+    window.matchMedia = matchMediaMock;
 
     render(
       <ThemeProvider>
@@ -107,7 +125,13 @@ describe('ThemeProvider', () => {
   });
 
   it('toggles theme from light to dark', () => {
-    localStorageMock.getItem.mockReturnValue('light');
+    localStorageMock.getItem.mockReturnValue(null); // system mode
+    const matchMediaMock = vi.fn(() => ({
+      matches: false, // system is light
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn()
+    })) as unknown as typeof window.matchMedia;
+    window.matchMedia = matchMediaMock;
 
     render(
       <ThemeProvider>
@@ -120,11 +144,17 @@ describe('ThemeProvider', () => {
     fireEvent.click(screen.getByTestId('toggle'));
 
     expect(screen.getByTestId('theme')).toHaveTextContent('dark');
-    expect(localStorageMock.setItem).toHaveBeenCalledWith('theme', 'dark');
+    expect(localStorageMock.setItem).toHaveBeenCalledWith('themeMode', 'dark');
   });
 
   it('toggles theme from dark to light', () => {
-    localStorageMock.getItem.mockReturnValue('dark');
+    localStorageMock.getItem.mockReturnValue(null); // system mode
+    const matchMediaMock = vi.fn(() => ({
+      matches: true, // system is dark
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn()
+    })) as unknown as typeof window.matchMedia;
+    window.matchMedia = matchMediaMock;
 
     render(
       <ThemeProvider>
@@ -137,7 +167,7 @@ describe('ThemeProvider', () => {
     fireEvent.click(screen.getByTestId('toggle'));
 
     expect(screen.getByTestId('theme')).toHaveTextContent('light');
-    expect(localStorageMock.setItem).toHaveBeenCalledWith('theme', 'light');
+    expect(localStorageMock.setItem).toHaveBeenCalledWith('themeMode', 'light');
   });
 
   it('applies dark class to document when theme is dark', () => {
@@ -165,7 +195,13 @@ describe('ThemeProvider', () => {
   });
 
   it('saves theme to localStorage when changed', () => {
-    localStorageMock.getItem.mockReturnValue('light');
+    localStorageMock.getItem.mockReturnValue(null); // system mode
+    const matchMediaMock = vi.fn(() => ({
+      matches: false, // system is light
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn()
+    })) as unknown as typeof window.matchMedia;
+    window.matchMedia = matchMediaMock;
 
     render(
       <ThemeProvider>
@@ -175,7 +211,7 @@ describe('ThemeProvider', () => {
 
     fireEvent.click(screen.getByTestId('toggle'));
 
-    expect(localStorageMock.setItem).toHaveBeenCalledWith('theme', 'dark');
+    expect(localStorageMock.setItem).toHaveBeenCalledWith('themeMode', 'dark');
   });
 });
 

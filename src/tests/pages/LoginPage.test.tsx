@@ -9,6 +9,7 @@ const mockSetUser = vi.fn();
 
 // Mock alert
 const mockAlert = vi.fn();
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 (globalThis as any).alert = mockAlert;
 
 // Mock dependencies
@@ -46,6 +47,7 @@ describe('LoginPage', () => {
 
     // Setup default successful mock responses
     const { supabase } = await import('../../lib/supabase');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const supabaseMock = supabase as any;
     supabaseMock.auth.signUp.mockResolvedValue({ error: null });
     supabaseMock.auth.signInWithPassword.mockResolvedValue({
@@ -182,6 +184,7 @@ describe('LoginPage', () => {
 
   it('displays error message on sign in failure', async () => {
     const { supabase } = await import('../../lib/supabase');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const supabaseMock = supabase as any;
     supabaseMock.auth.signInWithPassword.mockResolvedValue({
       data: null,
@@ -205,6 +208,7 @@ describe('LoginPage', () => {
 
   it('displays error message on sign up failure', async () => {
     const { supabase } = await import('../../lib/supabase');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const supabaseMock = supabase as any;
     supabaseMock.auth.signUp.mockResolvedValue({
       error: { message: 'Email already registered' },
@@ -232,6 +236,7 @@ describe('LoginPage', () => {
   it('clears error when toggling between modes', async () => {
     // First, trigger an error in sign in mode
     const { supabase } = await import('../../lib/supabase');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const supabaseMock = supabase as any;
     supabaseMock.auth.signInWithPassword.mockResolvedValueOnce({
       data: null,
@@ -307,6 +312,7 @@ describe('LoginPage', () => {
 
   it('handles network errors during sign in', async () => {
     const { supabase } = await import('../../lib/supabase');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const supabaseMock = supabase as any;
     supabaseMock.auth.signInWithPassword.mockRejectedValue(new Error('Network error'));
 
@@ -327,6 +333,7 @@ describe('LoginPage', () => {
 
   it('handles network errors during sign up', async () => {
     const { supabase } = await import('../../lib/supabase');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const supabaseMock = supabase as any;
     supabaseMock.auth.signUp.mockRejectedValue(new Error('Network error'));
 
@@ -351,6 +358,7 @@ describe('LoginPage', () => {
 
   it('maintains loading state during long operations', async () => {
     const { supabase } = await import('../../lib/supabase');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const supabaseMock = supabase as any;
     supabaseMock.auth.signInWithPassword.mockImplementation(
       () => new Promise(resolve => setTimeout(() => resolve({

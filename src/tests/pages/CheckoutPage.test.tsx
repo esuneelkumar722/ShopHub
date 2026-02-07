@@ -59,6 +59,7 @@ vi.mock('../components/payment/StripePaymentForm', () => ({
 }));
 
 vi.mock('../components/cart/DiscountCodeInput', () => ({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   DiscountCodeInput: ({ onDiscountApplied }: { onDiscountApplied: (discount: any) => void }) => (
     <button onClick={() => onDiscountApplied({ code: 'TEST10', percentage: 10 })}>
       Apply Discount

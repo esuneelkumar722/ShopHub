@@ -9,6 +9,14 @@ export const CartPage = () => {
   const user = useUserStore((state) => state.user);
   const navigate = useNavigate();
 
+  // Calculate order summary values
+  const { subtotal, shipping, total } = useMemo(() => {
+    const subtotal = getTotalPrice();
+    const shipping = 10.00;
+    const total = subtotal + shipping;
+    return { subtotal, shipping, total };
+  }, [getTotalPrice]);
+
   useEffect(() => {
     if (!user) {
       navigate('/login', { state: { from: '/cart' } });
@@ -96,31 +104,22 @@ export const CartPage = () => {
           <div className="card sticky top-24">
             <h2 className="text-xl font-bold mb-4 text-primary">Order Summary</h2>
 
-            {/* useMemo caches cart calculations - only recalculates when items change */}
-            {useMemo(() => {
-              const subtotal = getTotalPrice();
-              const shipping = 10.00;
-              const total = subtotal + shipping;
-
-              return (
-                <div className="space-y-2 mb-4">
-                  <div className="flex justify-between text-secondary">
-                    <span>Subtotal</span>
-                    <span>${subtotal.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between text-secondary">
-                    <span>Shipping</span>
-                    <span>${shipping.toFixed(2)}</span>
-                  </div>
-                  <div className="border-t border-theme pt-2 mt-2">
-                    <div className="flex justify-between font-bold text-lg text-primary">
-                      <span>Total</span>
-                      <span>${total.toFixed(2)}</span>
-                    </div>
-                  </div>
+            <div className="space-y-2 mb-4">
+              <div className="flex justify-between text-secondary">
+                <span>Subtotal</span>
+                <span>${subtotal.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between text-secondary">
+                <span>Shipping</span>
+                <span>${shipping.toFixed(2)}</span>
+              </div>
+              <div className="border-t border-theme pt-2 mt-2">
+                <div className="flex justify-between font-bold text-lg text-primary">
+                  <span>Total</span>
+                  <span>${total.toFixed(2)}</span>
                 </div>
-              );
-            }, [items, getTotalPrice])}
+              </div>
+            </div>
 
             <Link to="/checkout" className="btn btn-primary w-full">
               Proceed to Checkout

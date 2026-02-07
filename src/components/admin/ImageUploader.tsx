@@ -4,6 +4,25 @@ import { supabase } from '../../lib/supabase';
 import { toast } from 'sonner';
 import type { ProductImage } from '../../types';
 
+// Define local types for product_images operations
+type ProductImageInsert = {
+  id?: string;
+  product_id: string;
+  image_url: string;
+  display_order?: number;
+  is_primary?: boolean;
+  created_at?: string;
+};
+
+type ProductImageUpdate = {
+  id?: string;
+  product_id?: string;
+  image_url?: string;
+  display_order?: number;
+  is_primary?: boolean;
+  created_at?: string;
+};
+
 interface ImageUploaderProps {
   productId: string;
   existingImages?: ProductImage[];
@@ -85,9 +104,9 @@ export const ImageUploader = ({ productId, existingImages = [], onImagesUpdated 
         is_primary: images.length === 0 && index === 0,
       }));
 
-      const { data: insertedImages, error } = await supabase
+      const { data: insertedImages, error } = await (supabase as any) // eslint-disable-line @typescript-eslint/no-explicit-any
         .from('product_images')
-        .insert(newImageRecords as any)
+        .insert(newImageRecords as ProductImageInsert[])
         .select();
 
       if (error) {
@@ -143,16 +162,17 @@ export const ImageUploader = ({ productId, existingImages = [], onImagesUpdated 
   const setPrimaryImage = async (imageId: string) => {
     try {
       // Set all images as non-primary first
-      // Note: Using 'as any' due to TypeScript strict mode with Supabase update types
-      await (supabase as any)
+      const { error: resetError } = await (supabase as any) // eslint-disable-line @typescript-eslint/no-explicit-any
         .from('product_images')
-        .update({ is_primary: false })
+        .update({ is_primary: false } as ProductImageUpdate)
         .eq('product_id', productId);
 
+      if (resetError) throw resetError;
+
       // Set selected image as primary
-      const { error } = await (supabase as any)
+      const { error } = await (supabase as any) // eslint-disable-line @typescript-eslint/no-explicit-any
         .from('product_images')
-        .update({ is_primary: true })
+        .update({ is_primary: true } as ProductImageUpdate)
         .eq('id', imageId);
 
       if (error) throw error;

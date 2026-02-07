@@ -5,6 +5,7 @@ import { renderWithProviders } from '../renderWithProviders';
 
 // Mock dependencies
 vi.mock('@tanstack/react-query', async (importOriginal) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const actual = await importOriginal() as any;
   return {
     ...actual,
@@ -68,6 +69,7 @@ describe('OrdersPage', () => {
       isStale: false,
       refetch: vi.fn(),
       fetchStatus: 'idle'
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
   });
 
@@ -94,6 +96,7 @@ describe('OrdersPage', () => {
       isStale: false,
       refetch: vi.fn(),
       fetchStatus: 'fetching'
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
     renderWithProviders(<OrdersPage />);
@@ -152,6 +155,7 @@ describe('OrdersPage', () => {
       isStale: false,
       refetch: vi.fn(),
       fetchStatus: 'idle'
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
     renderWithProviders(<OrdersPage />);
@@ -185,6 +189,7 @@ describe('OrdersPage', () => {
       isStale: false,
       refetch: vi.fn(),
       fetchStatus: 'idle'
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
     renderWithProviders(<OrdersPage />);

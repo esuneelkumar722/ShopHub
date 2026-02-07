@@ -5,10 +5,16 @@ import { SkipToContent } from '../../../components/accessibility/SkipToContent';
 // Mock react-router-dom
 import { vi } from 'vitest';
 vi.mock('react-router-dom', async (importOriginal) => {
-  const actual = await importOriginal() as any;
+  const actual = await importOriginal() as typeof import('react-router-dom');
   return {
     ...actual,
-    Link: ({ children, to, className, 'aria-label': ariaLabel, ...props }: any) =>
+    Link: ({ children, to, className, 'aria-label': ariaLabel, ...props }: {
+      children: React.ReactNode;
+      to: string;
+      className?: string;
+      'aria-label'?: string;
+      [key: string]: unknown;
+    }) =>
       <a href={to} className={className} aria-label={ariaLabel} {...props}>{children}</a>,
   };
 });

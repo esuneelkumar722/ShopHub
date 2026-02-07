@@ -1,11 +1,13 @@
 import { renderWithProviders, screen, fireEvent, waitFor } from '../../renderWithProviders';
 import { vi } from 'vitest';
+import React from 'react';
 import type { Product } from '../../../types';
+import type { UseQueryResult } from '@tanstack/react-query';
 import { ProductRecommendations } from '../../../components/product/ProductRecommendations';
 
 // Mock dependencies
 vi.mock('@tanstack/react-query', async (importOriginal) => {
-  const actual = await importOriginal() as any;
+  const actual = await importOriginal() as typeof import('@tanstack/react-query');
   return {
     ...actual,
     useQuery: vi.fn(),
@@ -13,10 +15,10 @@ vi.mock('@tanstack/react-query', async (importOriginal) => {
 });
 
 vi.mock('react-router-dom', async (importOriginal) => {
-  const actual = await importOriginal() as any;
+  const actual = await importOriginal() as typeof import('react-router-dom');
   return {
     ...actual,
-    Link: ({ children, to }: any) => <a href={to}>{children}</a>,
+    Link: ({ children, to }: { children: React.ReactNode; to: string }) => <a href={to}>{children}</a>,
   };
 });
 
@@ -93,7 +95,7 @@ describe('ProductRecommendations', () => {
     mockUseQuery.mockReturnValue({
       data: undefined,
       isLoading: true,
-    } as any);
+    } as unknown as UseQueryResult<Product[], Error>);
 
     const { container } = renderWithProviders(
       <ProductRecommendations currentProductId="current-id" category="electronics" />
@@ -106,7 +108,7 @@ describe('ProductRecommendations', () => {
     mockUseQuery.mockReturnValue({
       data: [],
       isLoading: false,
-    } as any);
+    } as unknown as UseQueryResult<Product[], Error>);
 
     const { container } = renderWithProviders(
       <ProductRecommendations currentProductId="current-id" category="electronics" />
@@ -119,7 +121,7 @@ describe('ProductRecommendations', () => {
     mockUseQuery.mockReturnValue({
       data: mockProducts,
       isLoading: false,
-    } as any);
+    } as unknown as UseQueryResult<Product[], Error>);
 
     renderWithProviders(
       <ProductRecommendations currentProductId="current-id" category="electronics" />
@@ -144,7 +146,7 @@ describe('ProductRecommendations', () => {
     mockUseQuery.mockReturnValue({
       data: mockProducts,
       isLoading: false,
-    } as any);
+    } as unknown as UseQueryResult<Product[], Error>);
 
     renderWithProviders(
       <ProductRecommendations currentProductId="current-id" category="electronics" />
@@ -163,7 +165,7 @@ describe('ProductRecommendations', () => {
     mockUseQuery.mockReturnValue({
       data: mockProducts,
       isLoading: false,
-    } as any);
+    } as unknown as UseQueryResult<Product[], Error>);
 
     renderWithProviders(
       <ProductRecommendations currentProductId="current-id" category="electronics" />
@@ -179,7 +181,7 @@ describe('ProductRecommendations', () => {
     mockUseQuery.mockReturnValue({
       data: mockProducts,
       isLoading: false,
-    } as any);
+    } as unknown as UseQueryResult<Product[], Error>);
 
     renderWithProviders(
       <ProductRecommendations currentProductId="current-id" category="electronics" />
@@ -200,7 +202,7 @@ describe('ProductRecommendations', () => {
     mockUseQuery.mockReturnValue({
       data: mockProducts,
       isLoading: false,
-    } as any);
+    } as unknown as UseQueryResult<Product[], Error>);
 
     renderWithProviders(
       <ProductRecommendations currentProductId="current-id" category="electronics" />
@@ -231,7 +233,7 @@ describe('ProductRecommendations', () => {
     mockUseQuery.mockReturnValue({
       data: mockProducts,
       isLoading: false,
-    } as any);
+    } as unknown as UseQueryResult<Product[], Error>);
 
     renderWithProviders(
       <ProductRecommendations currentProductId="current-id" category="electronics" />
@@ -259,7 +261,7 @@ describe('ProductRecommendations', () => {
     mockUseQuery.mockReturnValue({
       data: mockProducts,
       isLoading: false,
-    } as any);
+    } as unknown as UseQueryResult<Product[], Error>);
 
     renderWithProviders(
       <ProductRecommendations currentProductId="current-id" category="electronics" />
@@ -293,7 +295,7 @@ describe('ProductRecommendations', () => {
     mockUseQuery.mockReturnValue({
       data: mockProducts,
       isLoading: false,
-    } as any);
+    } as unknown as UseQueryResult<Product[], Error>);
 
     renderWithProviders(
       <ProductRecommendations currentProductId="current-id" category="electronics" />
@@ -315,7 +317,7 @@ describe('ProductRecommendations', () => {
     mockUseQuery.mockReturnValue({
       data: mockProducts,
       isLoading: false,
-    } as any);
+    } as unknown as UseQueryResult<Product[], Error>);
 
     renderWithProviders(
       <ProductRecommendations currentProductId="current-id" category="electronics" />
@@ -334,7 +336,7 @@ describe('ProductRecommendations', () => {
     mockUseQuery.mockReturnValue({
       data: mockProducts,
       isLoading: false,
-    } as any);
+    } as unknown as UseQueryResult<Product[], Error>);
 
     renderWithProviders(
       <ProductRecommendations currentProductId="current-id" category="electronics" />
@@ -350,7 +352,7 @@ describe('ProductRecommendations', () => {
     mockUseQuery.mockReturnValue({
       data: mockProducts,
       isLoading: false,
-    } as any);
+    } as unknown as UseQueryResult<Product[], Error>);
 
     renderWithProviders(
       <ProductRecommendations currentProductId="current-product-id" category="test-category" />
@@ -367,7 +369,7 @@ describe('ProductRecommendations', () => {
       data: undefined,
       isLoading: false,
       error: new Error('Query failed'),
-    } as any);
+    } as unknown as UseQueryResult<Product[], Error>);
 
     // Component should not crash and render nothing
     const { container } = renderWithProviders(

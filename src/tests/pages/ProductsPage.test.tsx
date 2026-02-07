@@ -113,6 +113,27 @@ vi.mock('../../lib/supabase', () => ({
       }
       return {};
     }),
+    rpc: vi.fn((functionName) => {
+      if (functionName === 'search_products') {
+        return Promise.resolve({
+          data: [
+            {
+              id: '1',
+              name: 'Test Product',
+              price: 99.99,
+              category: 'electronics',
+              rating: 4.5,
+              reviews_count: 10,
+              image_url: 'test.jpg',
+              description: 'A test product',
+              created_at: '2023-01-01'
+            }
+          ],
+          error: null
+        });
+      }
+      return Promise.resolve({ data: null, error: null });
+    }),
     delete: vi.fn(() => ({ error: null })),
     insert: vi.fn(() => ({ error: null }))
   }

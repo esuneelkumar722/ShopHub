@@ -2,6 +2,7 @@ import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query';
+import type { UseQueryResult } from '@tanstack/react-query';
 import { useAdmin } from '../../hooks/useAdmin';
 import { useUserStore } from '../../store/userStore';
 
@@ -64,7 +65,7 @@ describe('useAdmin', () => {
   });
 
   it('returns true when user has admin role', async () => {
-    vi.mocked(useUserStore).mockReturnValue({ user: { id: 'user1' } as any });
+    vi.mocked(useUserStore).mockReturnValue({ user: { id: 'user1' } });
 
     // Mock useQuery to return admin status
     vi.mocked(useQuery).mockReturnValue({
@@ -91,7 +92,7 @@ describe('useAdmin', () => {
       isStale: false,
       refetch: vi.fn(),
       fetchStatus: 'idle'
-    } as any);
+    } as unknown as UseQueryResult<boolean, Error>);
 
     const { result } = renderHook(() => useAdmin(), {
       wrapper: createWrapper()
@@ -102,7 +103,7 @@ describe('useAdmin', () => {
   });
 
   it('returns false when user has non-admin role', async () => {
-    vi.mocked(useUserStore).mockReturnValue({ user: { id: 'user1' } as any });
+    vi.mocked(useUserStore).mockReturnValue({ user: { id: 'user1' } });
 
     vi.mocked(useQuery).mockReturnValue({
       data: false,
@@ -128,7 +129,7 @@ describe('useAdmin', () => {
       isStale: false,
       refetch: vi.fn(),
       fetchStatus: 'idle'
-    } as any);
+    } as unknown as UseQueryResult<boolean, Error>);
 
     const { result } = renderHook(() => useAdmin(), {
       wrapper: createWrapper()
@@ -139,7 +140,7 @@ describe('useAdmin', () => {
   });
 
   it('returns false when query fails', async () => {
-    vi.mocked(useUserStore).mockReturnValue({ user: { id: 'user1' } as any });
+    vi.mocked(useUserStore).mockReturnValue({ user: { id: 'user1' } });
 
     vi.mocked(useQuery).mockReturnValue({
       data: false,
@@ -165,7 +166,7 @@ describe('useAdmin', () => {
       isStale: false,
       refetch: vi.fn(),
       fetchStatus: 'idle'
-    } as any);
+    } as unknown as UseQueryResult<boolean, Error>);
 
     const { result } = renderHook(() => useAdmin(), {
       wrapper: createWrapper()
@@ -176,7 +177,7 @@ describe('useAdmin', () => {
   });
 
   it('returns false when no role data', async () => {
-    vi.mocked(useUserStore).mockReturnValue({ user: { id: 'user1' } as any });
+    vi.mocked(useUserStore).mockReturnValue({ user: { id: 'user1' } });
 
     vi.mocked(useQuery).mockReturnValue({
       data: false,
@@ -202,7 +203,7 @@ describe('useAdmin', () => {
       isStale: false,
       refetch: vi.fn(),
       fetchStatus: 'idle'
-    } as any);
+    } as unknown as UseQueryResult<boolean, Error>);
 
     const { result } = renderHook(() => useAdmin(), {
       wrapper: createWrapper()
@@ -213,7 +214,7 @@ describe('useAdmin', () => {
   });
 
   it('does not make query when user has no id', () => {
-    vi.mocked(useUserStore).mockReturnValue({ user: { id: '' } as any });
+    vi.mocked(useUserStore).mockReturnValue({ user: { id: '' } });
 
     const { result } = renderHook(() => useAdmin(), {
       wrapper: createWrapper()

@@ -1,12 +1,13 @@
 import { renderWithProviders, screen, fireEvent } from '../../renderWithProviders';
 import { MemoryRouter } from 'react-router-dom';
 import { vi } from 'vitest';
+import React from 'react';
 import type { Product } from '../../../types';
 
 // Mock framer-motion
 vi.mock('framer-motion', () => ({
   motion: {
-    div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
+    div: (props: React.ComponentProps<'div'>) => React.createElement('div', props),
   },
 }));
 

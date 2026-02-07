@@ -3,8 +3,8 @@ import { renderHook, act } from '@testing-library/react';
 import { useKeyboardNavigation, useFocusTrap, announceToScreenReader } from '../../hooks/useAccessibility';
 
 describe('useKeyboardNavigation', () => {
-  let mockOnEscape: any;
-  let mockOnEnter: any;
+  let mockOnEscape = vi.fn<() => void>();
+  let mockOnEnter = vi.fn<() => void>();
 
   beforeEach(() => {
     mockOnEscape = vi.fn();

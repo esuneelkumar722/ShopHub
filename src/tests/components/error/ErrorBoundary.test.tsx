@@ -74,7 +74,7 @@ describe('ErrorBoundary', () => {
   it('shows error details in development mode', () => {
     // Mock development environment
     const originalEnv = import.meta.env.DEV;
-    (import.meta.env as any).DEV = true;
+    (import.meta.env as { DEV: boolean }).DEV = true;
 
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => { });
 
@@ -88,13 +88,13 @@ describe('ErrorBoundary', () => {
     expect(screen.getByText('Error: Test error')).toBeInTheDocument();
 
     consoleSpy.mockRestore();
-    (import.meta.env as any).DEV = originalEnv;
+    (import.meta.env as { DEV: boolean }).DEV = originalEnv;
   });
 
   it('hides error details in production mode', () => {
     // Mock production environment
     const originalEnv = import.meta.env.DEV;
-    (import.meta.env as any).DEV = false;
+    (import.meta.env as { DEV: boolean }).DEV = false;
 
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => { });
 
@@ -107,7 +107,7 @@ describe('ErrorBoundary', () => {
     expect(screen.queryByText('Error Details (Development Only)')).not.toBeInTheDocument();
 
     consoleSpy.mockRestore();
-    (import.meta.env as any).DEV = originalEnv;
+    (import.meta.env as { DEV: boolean }).DEV = originalEnv;
   });
 
   it('calls window.location.reload when try again is clicked', () => {

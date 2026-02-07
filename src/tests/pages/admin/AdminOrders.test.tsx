@@ -3,6 +3,7 @@ vi.mock('../../../hooks/useAdmin', () => ({
   useAdmin: vi.fn()
 }));
 vi.mock('@tanstack/react-query', async (importOriginal) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const actual = await importOriginal() as any;
   return {
     ...actual,
@@ -69,6 +70,7 @@ describe('AdminOrders', () => {
       isStale: false,
       refetch: vi.fn(),
       fetchStatus: 'idle'
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
     mockUseMutation.mockReturnValue({
       mutate: vi.fn(),
@@ -85,6 +87,7 @@ describe('AdminOrders', () => {
       submittedAt: 0,
       failureCount: 0,
       failureReason: null
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
   });
 
@@ -118,6 +121,7 @@ describe('AdminOrders', () => {
       isStale: false,
       refetch: vi.fn(),
       fetchStatus: 'fetching'
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
     renderWithProviders(<AdminOrders />);
     expect(screen.getByText('Orders Management')).toBeInTheDocument();
@@ -162,6 +166,7 @@ describe('AdminOrders', () => {
       submittedAt: 0,
       failureCount: 0,
       failureReason: null
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
     renderWithProviders(<AdminOrders />);
@@ -196,6 +201,7 @@ describe('AdminOrders', () => {
       isStale: false,
       refetch: vi.fn(),
       fetchStatus: 'idle'
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
     renderWithProviders(<AdminOrders />);
     expect(screen.getByText('No orders found with the selected filter.')).toBeInTheDocument();

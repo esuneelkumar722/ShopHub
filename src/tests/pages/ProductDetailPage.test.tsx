@@ -5,6 +5,7 @@ import { renderWithProviders } from '../renderWithProviders';
 
 // Mock dependencies
 vi.mock('@tanstack/react-query', async (importOriginal) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const actual = await importOriginal() as any;
   return {
     ...actual,
@@ -54,6 +55,7 @@ const mockProduct = {
 describe('ProductDetailPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockUseQuery.mockImplementation((options: any) => {
       if (options.queryKey?.[0] === 'product') {
         return {
@@ -78,6 +80,7 @@ describe('ProductDetailPage', () => {
           isStale: false,
           refetch: vi.fn(),
           fetchStatus: 'idle'
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any;
       }
       if (options.queryKey?.[0] === 'product-images') {
@@ -103,6 +106,7 @@ describe('ProductDetailPage', () => {
           isStale: false,
           refetch: vi.fn(),
           fetchStatus: 'idle'
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any;
       }
       if (options.queryKey?.[0] === 'reviews') {
@@ -128,6 +132,7 @@ describe('ProductDetailPage', () => {
           isStale: false,
           refetch: vi.fn(),
           fetchStatus: 'idle'
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any;
       }
       if (options.queryKey?.[0] === 'recommendations') {
@@ -165,6 +170,7 @@ describe('ProductDetailPage', () => {
           isStale: false,
           refetch: vi.fn(),
           fetchStatus: 'idle'
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any;
       }
       if (options.queryKey?.[0] === 'wishlist') {
@@ -190,6 +196,7 @@ describe('ProductDetailPage', () => {
           isStale: false,
           refetch: vi.fn(),
           fetchStatus: 'idle'
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any;
       }
       return {
@@ -214,6 +221,7 @@ describe('ProductDetailPage', () => {
         isStale: false,
         refetch: vi.fn(),
         fetchStatus: 'idle'
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any;
     });
 
@@ -232,10 +240,12 @@ describe('ProductDetailPage', () => {
       submittedAt: 0,
       failureCount: 0,
       failureReason: null
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
   });
 
   it('renders loading skeleton when loading', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockUseQuery.mockImplementation((options: any) => {
       if (options.queryKey?.[0] === 'product') {
         return {
@@ -260,6 +270,7 @@ describe('ProductDetailPage', () => {
           isStale: false,
           refetch: vi.fn(),
           fetchStatus: 'fetching'
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any;
       }
       return {
@@ -284,6 +295,7 @@ describe('ProductDetailPage', () => {
         isStale: false,
         refetch: vi.fn(),
         fetchStatus: 'idle'
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any;
     });
 
@@ -320,6 +332,7 @@ describe('ProductDetailPage', () => {
   });
 
   it('shows error when product not found', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockUseQuery.mockImplementation((options: any) => {
       if (options.queryKey?.[0] === 'product') {
         return {
@@ -344,6 +357,7 @@ describe('ProductDetailPage', () => {
           isStale: false,
           refetch: vi.fn(),
           fetchStatus: 'idle'
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any;
       }
       return {
@@ -368,6 +382,7 @@ describe('ProductDetailPage', () => {
         isStale: false,
         refetch: vi.fn(),
         fetchStatus: 'idle'
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any;
     });
 

@@ -34,7 +34,7 @@ export const DiscountCodeInput = ({
         .eq('code', code.toUpperCase())
         .eq('is_active', true);
 
-      const { data, error } = result as { data: DiscountCode[] | null; error: any };
+      const { data, error } = result as { data: DiscountCode[] | null; error: Error | null };
 
       if (error || !data || data.length === 0) {
         toast.error('Invalid or expired discount code');
@@ -93,7 +93,7 @@ export const DiscountCodeInput = ({
       onDiscountApplied(discountData, discountAmount);
       toast.success(`Discount code "${discountData.code}" applied! You saved $${discountAmount.toFixed(2)}`);
       setCode('');
-    } catch (err) {
+    } catch {
       toast.error('Failed to apply discount code');
     } finally {
       setLoading(false);
