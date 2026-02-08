@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { useSearchParams } from 'react-router-dom';
 import { useEffect } from 'react';
 import type { Product, ProductFilters } from '../types';
+import { fetchProducts, fetchCategories } from '../lib/productsApi';
 import { supabase } from '../lib/supabase';
 import { useCartStore } from '../store/cartStore';
 import { useUserStore } from '../store/userStore';
@@ -140,61 +141,25 @@ export const ProductsPage = () => {
     }, 2000);
   }, [addItem]);
 
-  // Fetch unique categories from database
+  // Fetch unique categories from API (mock or real based on environment)
   const { data: categories } = useQuery({
     queryKey: ['categories'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('products')
-        .select('category')
-        .order('category');
-
-      if (error) throw error;
-      const uniqueCategories = [...new Set((data || []).map((p: { category: string }) => p.category))];
-      return uniqueCategories as string[];
-    }
+    queryFn: fetchCategories
   });
 
-  // SERVER-SIDE PAGINATION: Fetch only products for current page using fuzzy search RPC
+  // SERVER-SIDE PAGINATION: Fetch only products for current page using mocked API
   const { data: productsData, isLoading, error } = useQuery({
     queryKey: ['products', debouncedSearch, filters.category, filters.sortBy, currentPage],
     queryFn: async () => {
-      // Calculate range for current page
-      const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-
-      // Use RPC function for fuzzy search
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data: products, error: rpcError } = await (supabase.rpc as any)('search_products', {
-        search_term: debouncedSearch || '',
-        category_filter: filters.category,
-        sort_by: filters.sortBy,
-        page_limit: ITEMS_PER_PAGE,
-        page_offset: startIndex
-      });
-
-      if (rpcError) throw rpcError;
-
-      // Get total count for pagination (using simpler query for count)
-      let countQuery = supabase
-        .from('products')
-        .select('*', { count: 'exact', head: true }); // head: true to only get count
-
-      if (filters.category) {
-        countQuery = countQuery.eq('category', filters.category);
-      }
-
-      if (debouncedSearch) {
-        // For count, use only ILIKE to avoid trigram operator issues
-        countQuery = countQuery.ilike('name', `%${debouncedSearch}%`);
-      }
-
-      const { count, error: countError } = await countQuery;
-      if (countError) throw countError;
-
-      return {
-        products: products as Product[],
-        totalCount: count || 0
-      };
+      return await fetchProducts(
+        {
+          search: debouncedSearch,
+          category: filters.category,
+          sortBy: filters.sortBy
+        },
+        currentPage,
+        ITEMS_PER_PAGE
+      )
     }
   });
 

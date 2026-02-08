@@ -2,15 +2,15 @@
 
 ## Prerequisites
 
-1. GitHub account with ShopHub repository
-2. Vercel account (sign up at [vercel.com](https://vercel.com))
-3. Supabase project credentials
+- GitHub account with ShopHub repository
+- Vercel account (sign up at vercel.com)
+- Supabase project credentials
 
 ## Step-by-Step Deployment
 
-### 1. Prepare Your Repository
+### 1. Prepare Repository
 
-Ensure your code is pushed to GitHub:
+Ensure your code is committed and pushed to GitHub:
 
 ```bash
 git add .
@@ -20,185 +20,128 @@ git push origin main
 
 ### 2. Connect to Vercel
 
-1. Go to [vercel.com](https://vercel.com) and sign in
+1. Go to vercel.com and sign in
 2. Click "Add New Project"
 3. Import your ShopHub repository from GitHub
 4. Vercel will auto-detect it as a Vite project
 
-### 3. Configure Project Settings
+### 3. Configure Build Settings
 
-**Framework Preset:** Vite (auto-detected)
-
-**Build Settings:**
+- Framework Preset: Vite (auto-detected)
 - Build Command: `npm run build`
 - Output Directory: `dist`
 - Install Command: `npm install`
-
-**Root Directory:** `./` (leave as default)
+- Root Directory: `./` (leave as default)
 
 ### 4. Environment Variables
 
 Add these environment variables in Vercel dashboard:
 
 ```
-VITE_SUPABASE_URL=https://ghqwelumltjyphkebalf.supabase.co
-VITE_SUPABASE_ANON_KEY=your_anon_key_here
+VITE_USE_MOCK_API=false
+VITE_SUPABASE_URL=your_supabase_url_here
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key_here
+VITE_STRIPE_PUBLIC_KEY=your_stripe_public_key_here
 ```
 
-**To add environment variables:**
-1. Go to your project settings
+To add environment variables:
+1. Go to project settings
 2. Click "Environment Variables" tab
 3. Add each variable with its value
-4. Make sure they're available for Production, Preview, and Development
+4. Set scope to Production
 
 ### 5. Deploy
 
 1. Click "Deploy" button
-2. Wait for the build to complete (usually 1-2 minutes)
-3. Vercel will provide a deployment URL (e.g., `shophub-xyz.vercel.app`)
+2. Wait for build completion (usually 1-2 minutes)
+3. Vercel will provide a deployment URL
 
-### 6. Configure Custom Domain (Optional)
+### 6. Custom Domain (Optional)
 
 1. Go to project settings → "Domains"
 2. Add your custom domain
 3. Follow DNS configuration instructions
-4. Wait for DNS propagation (can take up to 48 hours)
 
 ## Post-Deployment Verification
 
-### Test These Features:
-
-✅ **Homepage loads correctly**
-- Hero section displays
-- Featured products appear
-
-✅ **Authentication works**
-- Sign up new account
-- Login with existing account
-- Logout functionality
-
-✅ **Product browsing**
-- View all products
-- Search products
-- Filter by category
-- Sort products
-- Pagination works
-
-✅ **Product details**
-- Individual product pages load
-- Images display correctly
-- Reviews appear
-- Product recommendations show
-
-✅ **Shopping cart**
-- Add products to cart
-- Update quantities
-- Remove items
-- Cart persists across page refreshes
-
-✅ **Wishlist**
-- Add/remove from wishlist
-- View wishlist page
-- Wishlist persists
-
-✅ **Checkout**
-- Complete order placement
-- Order confirmation appears
-- Order saved to database
-
-✅ **User profile**
-- View order history
-- Update profile information
-- Delete account
-
-✅ **Error handling**
-- 404 page shows for invalid routes
-- Error boundary catches errors
+Test these features:
+- Homepage loads correctly
+- Authentication works (sign up, login, logout)
+- Product browsing (search, filter, sort, pagination)
+- Product details pages
+- Shopping cart functionality
+- Wishlist functionality
+- Checkout process
+- User profile and order history
+- Error handling (404 pages, error boundaries)
 
 ## Troubleshooting
 
 ### Build Fails
-
-**Check for:**
-- TypeScript errors: `npm run build` locally
-- Missing dependencies: `npm install`
-- Environment variables configured correctly
+- Check for TypeScript errors: `npm run build` locally
+- Verify dependencies: `npm install`
+- Confirm environment variables are configured
 
 ### Blank Page After Deployment
-
-**Possible causes:**
-1. Missing environment variables
-2. Incorrect Supabase credentials
-3. Browser console shows errors
-
-**Solution:**
 - Check browser console for errors
 - Verify environment variables in Vercel
-- Check Vercel deployment logs
+- Review Vercel deployment logs
 
 ### API Calls Fail
-
-**Check:**
-1. Supabase URL is correct
-2. Supabase anon key is valid
-3. RLS policies are enabled in Supabase
-4. CORS is configured (Vercel domain added to Supabase allowed origins)
+- Confirm Supabase URL and anon key are correct
+- Check RLS policies are enabled in Supabase
+- Verify CORS configuration includes Vercel domain
 
 ### Images Don't Load
-
-**Verify:**
-- Image URLs are correct
-- Supabase Storage is configured
-- Images are publicly accessible
+- Confirm image URLs are correct
+- Check Supabase Storage configuration
+- Ensure images are publicly accessible
 
 ## Continuous Deployment
 
-Once connected, Vercel automatically:
-- Deploys every push to `main` branch (Production)
+Vercel automatically:
+- Deploys pushes to main branch (Production)
 - Creates preview deployments for pull requests
 - Provides unique URLs for each deployment
 
 ## Monitoring
 
-**Vercel Dashboard provides:**
+Vercel dashboard provides:
 - Real-time analytics
 - Performance metrics
 - Error tracking
 - Build logs
 - Deployment history
 
-## Performance Optimization
+## Performance Features
 
-Already implemented in ShopHub:
-✅ Image lazy loading
-✅ Code splitting (React Router)
-✅ Search debouncing
-✅ Optimistic UI updates
-✅ Loading skeletons
-✅ Asset caching (vercel.json)
+Implemented optimizations:
+- Image lazy loading
+- Code splitting (React Router)
+- Search debouncing
+- Optimistic UI updates
+- Loading skeletons
+- Asset caching (vercel.json)
 
 ## Security
 
-✅ Environment variables are encrypted
-✅ Supabase RLS policies protect data
-✅ HTTPS enabled by default
-✅ Authentication tokens stored securely
+- Environment variables are encrypted
+- Supabase RLS policies protect data
+- HTTPS enabled by default
+- Authentication tokens stored securely
 
 ## Rollback
 
-If deployment has issues:
+To rollback to previous deployment:
 1. Go to Vercel dashboard
 2. Click "Deployments" tab
-3. Find previous working deployment
+3. Find working deployment
 4. Click "..." → "Promote to Production"
 
 ## Support
 
-- Vercel Docs: https://vercel.com/docs
-- Supabase Docs: https://supabase.com/docs
-- Community: https://vercel.com/community
-
----
+- Vercel Documentation: https://vercel.com/docs
+- Supabase Documentation: https://supabase.com/docs
 
 ## Quick Commands
 
@@ -213,23 +156,19 @@ npm run lint
 
 # Update dependencies
 npm update
-
-# Deploy via CLI (alternative method)
-npm i -g vercel
-vercel --prod
 ```
 
 ## Success Checklist
 
-- [ ] Code pushed to GitHub
-- [ ] Vercel project created
-- [ ] Environment variables configured
-- [ ] Build succeeds
-- [ ] Site loads correctly
-- [ ] Authentication works
-- [ ] Database operations work
-- [ ] All features tested
-- [ ] Custom domain configured (optional)
-- [ ] Monitoring set up
+- Code pushed to GitHub
+- Vercel project created
+- Environment variables configured
+- Build succeeds
+- Site loads correctly
+- Authentication works
+- Database operations work
+- All features tested
+- Custom domain configured (optional)
+- Monitoring set up
 
-**Your ShopHub e-commerce platform is now live! 🚀**
+Your ShopHub e-commerce platform is now live.
