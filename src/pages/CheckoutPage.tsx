@@ -29,8 +29,7 @@ const checkoutSchema = z.object({
 type CheckoutForm = z.infer<typeof checkoutSchema>;
 
 export const CheckoutPage = () => {
-  const [step, setStep] = useState(1); // 1=Shipping, 2=Payment, 3=Review
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [step, setStep] = useState(1); // 1=Shipping, 2=Review, 3=Payment
   const [appliedDiscount, setAppliedDiscount] = useState<DiscountCode | null>(null);
   const [discountAmount, setDiscountAmount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -85,7 +84,7 @@ export const CheckoutPage = () => {
       const isValid = await trigger(fieldsToValidate);
       if (isValid) setStep(step + 1);
     } else if (step === 2) {
-      // Step 2 is now Stripe payment, just move to review
+      // Step 2 is now review, just move to payment
       setStep(step + 1);
     }
   };
@@ -99,7 +98,6 @@ export const CheckoutPage = () => {
 
   // Final submission - save order to database
   const onSubmit = async () => {
-    setIsSubmitting(true);
 
     try {
       // Create order in Supabase
@@ -157,8 +155,6 @@ export const CheckoutPage = () => {
     } catch (error: unknown) {
       console.error('Checkout error:', error);
       toast.error('Failed to place order: ' + (error instanceof Error ? error.message : 'Unknown error'));
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -170,8 +166,8 @@ export const CheckoutPage = () => {
       <div className="flex items-center justify-between mb-12">
         {[
           { num: 1, label: 'Shipping', icon: Truck },
-          { num: 2, label: 'Payment', icon: CreditCard },
-          { num: 3, label: 'Review', icon: CheckCircle },
+          { num: 2, label: 'Review', icon: CheckCircle },
+          { num: 3, label: 'Payment', icon: CreditCard },
         ].map(({ num, label, icon: Icon }) => (
           <div key={num} className="flex items-center">
             <div
@@ -240,29 +236,15 @@ export const CheckoutPage = () => {
             </div>
 
             <button type="submit" className="btn btn-primary w-full">
-              Continue to Payment
+              Continue to Review
             </button>
           </div>
         </form>
       )}
 
-      {/* Step 2: Payment Information - Separate form, not nested */}
+      {/* Step 2: Order Review */}
       {step === 2 && (
-        <Elements stripe={getStripe()}>
-          <StripePaymentForm
-            amount={total}
-            onSuccess={() => {
-              // Payment successful, move to review
-              setStep(3);
-            }}
-            onCancel={() => setStep(1)}
-          />
-        </Elements>
-      )}
-
-      {/* Step 3: Order Review */}
-      {step === 3 && (
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form onSubmit={(e) => { e.preventDefault(); handleNextStep(); }}>
           <div className="space-y-6">
             <div className="card">
               <h2 className="text-2xl font-bold mb-4 dark:text-white">Order Summary</h2>
@@ -300,34 +282,44 @@ export const CheckoutPage = () => {
               </div>
             </div>
 
+            <div className="mt-6">
+              <DiscountCodeInput
+                subtotal={subtotal}
+                onDiscountApplied={(discount, amount) => {
+                  setAppliedDiscount(discount);
+                  setDiscountAmount(amount);
+                }}
+                onDiscountRemoved={() => {
+                  setAppliedDiscount(null);
+                  setDiscountAmount(0);
+                }}
+              />
+            </div>
+
             <div className="flex gap-4">
-              <button type="button" onClick={() => setStep(2)} className="btn btn-secondary flex-1">
+              <button type="button" onClick={() => setStep(1)} className="btn btn-secondary flex-1">
                 Back
               </button>
-              <button type="submit" disabled={isSubmitting} className="btn btn-primary flex-1 focus-visible">
-                {isSubmitting ? 'Processing...' : 'Place Order'}
+              <button type="submit" className="btn btn-primary flex-1">
+                Continue to Payment
               </button>
             </div>
           </div>
         </form>
       )}
 
-      {/* Discount Code Section (always visible) */}
+      {/* Step 3: Payment Information */}
       {step === 3 && (
-        <div className="mt-6">
-          <DiscountCodeInput
-            subtotal={subtotal}
-            onDiscountApplied={(discount, amount) => {
-              setAppliedDiscount(discount);
-              setDiscountAmount(amount);
-            }}
-            onDiscountRemoved={() => {
-              setAppliedDiscount(null);
-              setDiscountAmount(0);
-            }}
+        <Elements stripe={getStripe()}>
+          <StripePaymentForm
+            amount={total}
+            onSuccess={handleSubmit(onSubmit)}
+            onCancel={() => setStep(2)}
           />
-        </div>
+        </Elements>
       )}
+
+
     </div>
   );
 };
