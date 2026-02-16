@@ -207,7 +207,7 @@ export const ProductDetailPage = () => {
       navigate('/login', { state: { from: location.pathname } });
       return;
     }
-    
+
     if (product) {
       addItem(product);
       toast.success(`${product.name} added to cart!`);
@@ -267,71 +267,75 @@ export const ProductDetailPage = () => {
         {/* Product Image Gallery */}
         <div>
           {productImages.length > 0 ? (
-            <ImageGallery
-              images={[product.image_url, ...productImages.map(img => img.image_url)]}
-              productName={product.name}
-            />
+            <div className="w-full max-w-sm mx-auto">
+              <ImageGallery
+                images={[product.image_url, ...productImages.map(img => img.image_url)]}
+                productName={product.name}
+              />
+            </div>
           ) : (
-            <img
-              src={product.image_url}
-              alt={product.name}
-              loading="lazy"
-              className="w-full rounded-2xl shadow-lg"
-              onError={(e) => {
-                e.currentTarget.src = 'https://via.placeholder.com/600x600?text=Product+Image';
-              }}
-            />
+            <div className="w-full max-w-sm mx-auto">
+              <img
+                src={product.image_url}
+                alt={product.name}
+                loading="lazy"
+                className="w-full h-auto max-h-80 object-cover rounded-2xl shadow-lg"
+                onError={(e) => {
+                  e.currentTarget.src = 'https://via.placeholder.com/600x600?text=Product+Image';
+                }}
+              />
+            </div>
           )}
         </div>
 
         {/* Product Info */}
         <div>
-          <div className="mb-4">
-            <span className="inline-block px-3 py-1 bg-primary-100 text-primary-700 rounded-full text-sm font-medium capitalize">
+          <div className="mb-3">
+            <span className="inline-block px-2 py-1 bg-primary-100 text-primary-700 rounded-full text-xs font-medium capitalize">
               {product.category}
             </span>
           </div>
 
-          <h1 className="text-4xl font-bold mb-4">{product.name}</h1>
+          <h1 className="text-2xl font-bold mb-3">{product.name}</h1>
 
-          <div className="flex items-center gap-4 mb-6">
+          <div className="flex items-center gap-3 mb-4">
             <div className="flex items-center">
               {[...Array(5)].map((_, i) => (
                 <Star
                   key={i}
-                  className={`w-5 h-5 ${i < Math.floor(product.rating)
+                  className={`w-4 h-4 ${i < Math.floor(product.rating)
                     ? 'fill-yellow-400 text-yellow-400'
                     : 'text-gray-300'
                     }`}
                 />
               ))}
-              <span className="ml-2 font-medium">{product.rating}</span>
+              <span className="ml-2 text-sm font-medium">{product.rating}</span>
             </div>
-            <span className="text-gray-600">({product.reviews_count} reviews)</span>
+            <span className="text-sm text-gray-600">({product.reviews_count} reviews)</span>
           </div>
 
-          <div className="mb-6">
-            <span className="text-5xl font-bold text-primary-600">
+          <div className="mb-4">
+            <span className="text-3xl font-bold text-primary-600">
               ${product.price.toFixed(2)}
             </span>
           </div>
 
-          <p className="text-gray-700 text-lg mb-8 leading-relaxed">
+          <p className="text-gray-700 text-base mb-6 leading-relaxed">
             {product.description}
           </p>
 
-          <div className="flex items-center gap-4 mb-8">
-            <div className={`px-4 py-2 rounded-lg ${product.stock > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+          <div className="flex items-center gap-3 mb-6">
+            <div className={`px-3 py-1 rounded-md text-sm ${product.stock > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
               }`}>
               {product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}
             </div>
           </div>
 
-          <div className="flex gap-4">
+          <div className="flex gap-3">
             <AddToCartButton
               onClick={handleAddToCart}
               disabled={product.stock === 0}
-              className={`flex-1 py-4 rounded-lg font-semibold text-lg flex items-center justify-center gap-3 transition-all focus-visible ${added
+              className={`flex-1 py-3 rounded-lg font-semibold text-base flex items-center justify-center gap-2 transition-all focus-visible ${added
                 ? 'bg-green-600 text-white hover:bg-green-700'
                 : product.stock > 0
                   ? 'bg-primary-600 text-white hover:bg-primary-700'
@@ -340,12 +344,12 @@ export const ProductDetailPage = () => {
             >
               {added ? (
                 <>
-                  <Check className="w-6 h-6" />
+                  <Check className="w-5 h-5" />
                   Added to Cart
                 </>
               ) : (
                 <>
-                  <ShoppingCart className="w-6 h-6" />
+                  <ShoppingCart className="w-5 h-5" />
                   Add to Cart
                 </>
               )}
@@ -354,11 +358,11 @@ export const ProductDetailPage = () => {
             {user && (
               <button
                 onClick={() => product && toggleWishlist.mutate(product.id)}
-                className="p-4 rounded-lg border-2 border-gray-300 dark:border-gray-600 hover:border-red-400 dark:hover:border-red-400 transition-all hover:scale-110 focus-visible"
+                className="p-3 rounded-lg border-2 border-gray-300 dark:border-gray-600 hover:border-red-400 dark:hover:border-red-400 transition-all hover:scale-105 focus-visible"
                 aria-label={wishlistItems?.includes(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
               >
                 <Heart
-                  className={`w-6 h-6 ${wishlistItems?.includes(product.id)
+                  className={`w-5 h-5 ${wishlistItems?.includes(product.id)
                     ? 'fill-red-500 text-red-500'
                     : 'text-gray-400'
                     }`}
@@ -370,34 +374,34 @@ export const ProductDetailPage = () => {
       </div>
 
       {/* Additional Info */}
-      <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div className="card">
-          <h3 className="font-semibold text-lg mb-2">Free Shipping</h3>
-          <p className="text-gray-600">On orders over $50</p>
+      <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="card p-4">
+          <h3 className="font-semibold text-base mb-1">Free Shipping</h3>
+          <p className="text-gray-600 text-sm">On orders over $50</p>
         </div>
-        <div className="card">
-          <h3 className="font-semibold text-lg mb-2">Easy Returns</h3>
-          <p className="text-gray-600">30-day return policy</p>
+        <div className="card p-4">
+          <h3 className="font-semibold text-base mb-1">Easy Returns</h3>
+          <p className="text-gray-600 text-sm">30-day return policy</p>
         </div>
-        <div className="card">
-          <h3 className="font-semibold text-lg mb-2">Secure Payment</h3>
-          <p className="text-gray-600">SSL encrypted checkout</p>
+        <div className="card p-4">
+          <h3 className="font-semibold text-base mb-1">Secure Payment</h3>
+          <p className="text-gray-600 text-sm">SSL encrypted checkout</p>
         </div>
       </div>
 
       {/* Reviews Section */}
-      <div className="mt-16">
-        <h2 className="text-3xl font-bold mb-8">Customer Reviews</h2>
+      <div className="mt-12">
+        <h2 className="text-2xl font-bold mb-6">Customer Reviews</h2>
 
         {/* Review Form */}
         {user ? (
           !userReview || editingReviewId ? (
-            <div className="card mb-8">
-              <h3 className="text-xl font-semibold mb-4">
+            <div className="card mb-6 p-6">
+              <h3 className="text-lg font-semibold mb-3">
                 {editingReviewId ? 'Edit Your Review' : 'Write a Review'}
               </h3>
               <form onSubmit={handleSubmitReview}>
-                <div className="mb-4">
+                <div className="mb-3">
                   <label className="block text-sm font-medium mb-2">Rating</label>
                   <div className="flex gap-2 items-center">
                     {[1, 2, 3, 4, 5].map((rating) => {
@@ -407,7 +411,7 @@ export const ProductDetailPage = () => {
                           key={rating}
                           type="button"
                           onClick={() => setReviewRating(rating)}
-                          className={`focus:outline-none text-3xl transition-transform hover:scale-110 ${reviewRating === rating ? 'scale-125' : 'opacity-50'
+                          className={`focus:outline-none text-2xl transition-transform hover:scale-110 ${reviewRating === rating ? 'scale-125' : 'opacity-50'
                             }`}
                           aria-label={`Rate ${rating}`}
                         >
@@ -415,7 +419,7 @@ export const ProductDetailPage = () => {
                         </button>
                       );
                     })}
-                    <span className="ml-2 text-lg font-medium">
+                    <span className="ml-2 text-base font-medium">
                       {reviewRating > 0 ? `${reviewRating}.0` : 'Select a rating'}
                     </span>
                   </div>
@@ -424,12 +428,12 @@ export const ProductDetailPage = () => {
                   )}
                 </div>
 
-                <div className="mb-4">
+                <div className="mb-3">
                   <label className="block text-sm font-medium mb-2">Your Review</label>
                   <textarea
                     value={reviewComment}
                     onChange={(e) => setReviewComment(e.target.value)}
-                    className="input min-h-[120px]"
+                    className="input min-h-[80px]"
                     placeholder="Share your thoughts about this product..."
                     required
                   />
@@ -461,8 +465,8 @@ export const ProductDetailPage = () => {
             </div>
           ) : null
         ) : (
-          <div className="card mb-8 text-center">
-            <p className="text-gray-600 mb-4">Please sign in to write a review</p>
+          <div className="card mb-6 p-4 text-center">
+            <p className="text-gray-600 mb-3">Please sign in to write a review</p>
             <Link to="/login" className="btn btn-primary inline-block">
               Sign In
             </Link>
@@ -470,14 +474,14 @@ export const ProductDetailPage = () => {
         )}
 
         {/* Reviews List */}
-        <div className="space-y-6">
+        <div className="space-y-4">
           {reviews && reviews.length > 0 ? (
             reviews.map((review) => (
-              <div key={review.id} className="card">
-                <div className="flex items-start justify-between mb-3">
+              <div key={review.id} className="card p-4">
+                <div className="flex items-start justify-between mb-2">
                   <div>
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="font-semibold">
+                      <span className="font-semibold text-sm">
                         {review.user?.full_name || review.user?.email || 'Anonymous'}
                       </span>
                       {review.user_id === user?.id && (
@@ -487,7 +491,7 @@ export const ProductDetailPage = () => {
                       )}
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="flex text-xl">
+                      <div className="flex text-lg">
                         {[1, 2, 3, 4, 5].map((rating) => {
                           const faces = ['😡', '😞', '😐', '😊', '😍'];
                           return (
@@ -500,7 +504,7 @@ export const ProductDetailPage = () => {
                           );
                         })}
                       </div>
-                      <span className="text-sm text-gray-500">
+                      <span className="text-xs text-gray-500">
                         {new Date(review.created_at).toLocaleDateString()}
                       </span>
                     </div>
@@ -510,14 +514,14 @@ export const ProductDetailPage = () => {
                     <div className="flex gap-2">
                       <button
                         onClick={() => handleEditReview(review)}
-                        className="p-2 text-gray-600 hover:text-primary-600 hover:bg-gray-100 rounded"
+                        className="p-1 text-gray-600 hover:text-primary-600 hover:bg-gray-100 rounded"
                         title="Edit review"
                       >
                         <Edit2 className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => deleteReviewMutation.mutate(review.id)}
-                        className="p-2 text-gray-600 hover:text-red-600 hover:bg-gray-100 rounded"
+                        className="p-1 text-gray-600 hover:text-red-600 hover:bg-gray-100 rounded"
                         title="Delete review"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -526,11 +530,11 @@ export const ProductDetailPage = () => {
                   )}
                 </div>
 
-                <p className="text-gray-700 leading-relaxed">{review.comment}</p>
+                <p className="text-gray-700 leading-relaxed text-sm">{review.comment}</p>
               </div>
             ))
           ) : (
-            <div className="card text-center text-gray-500">
+            <div className="card p-4 text-center text-gray-500 text-sm">
               No reviews yet. Be the first to review this product!
             </div>
           )}
