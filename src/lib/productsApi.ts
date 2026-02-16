@@ -57,9 +57,9 @@ export const fetchProducts = async (
     }
 
     // Apply sorting
-    if (filters.sortBy === 'price-low') {
+    if (filters.sortBy === 'price-asc') {
       query = query.order('price', { ascending: true })
-    } else if (filters.sortBy === 'price-high') {
+    } else if (filters.sortBy === 'price-desc') {
       query = query.order('price', { ascending: false })
     } else if (filters.sortBy === 'rating') {
       query = query.order('rating', { ascending: false })
