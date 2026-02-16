@@ -49,8 +49,9 @@ export interface Review {
   id: string;
   product_id: string;
   user_id: string;
-  rating: number;
+  rating?: number; // Made optional
   comment: string;
+  user_name?: string; // Display name for the reviewer
   created_at: string;
   updated_at: string;
   user?: {

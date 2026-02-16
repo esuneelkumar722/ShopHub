@@ -8,7 +8,7 @@ import { ProductRecommendations } from '../components/product/ProductRecommendat
 import { ImageGallery } from '../components/product/ImageGallery';
 import { AddToCartButton } from '../components/cart/AddToCartButton';
 import { ShoppingCart, ArrowLeft, Star, Check, Trash2, Edit2, Heart } from 'lucide-react';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useUserStore } from '../store/userStore';
 import { toast } from 'sonner';
 
@@ -60,25 +60,50 @@ export const ProductDetailPage = () => {
     queryKey: ['reviews', id],
     queryFn: async () => {
       if (!id) return [];
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (supabase as any)
-        .from('reviews')
-        .select(`
-          *,
-          user:user_id (
-            email,
-            full_name
-          )
-        `)
-        .eq('product_id', id)
-        .order('created_at', { ascending: false });
+      try {
+        // First try with user join
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data, error } = await (supabase as any)
+          .from('reviews')
+          .select(`
+            *,
+            user:user_id (
+              email,
+              full_name
+            )
+          `)
+          .eq('product_id', id)
+          .order('created_at', { ascending: false });
 
-      if (error) {
-        // Silently return empty array if reviews table doesn't exist
-        console.warn('Reviews table not available:', error.message);
+        if (!error) {
+          return data as Review[];
+        }
+
+        console.warn('User join failed, trying without:', error.message);
+
+        // Fallback: get reviews without user data
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data: simpleData, error: simpleError } = await (supabase as any)
+          .from('reviews')
+          .select('*')
+          .eq('product_id', id)
+          .order('created_at', { ascending: false });
+
+        if (simpleError) {
+          console.error('Simple reviews query failed:', simpleError);
+          return [];
+        }
+
+        // Add dummy user data for display
+        return simpleData.map((review: Omit<Review, 'user'>) => ({
+          ...review,
+          user: { email: `User ${review.user_id?.slice(0, 8)}...`, full_name: null }
+        })) as Review[];
+
+      } catch (err) {
+        console.error('Reviews query completely failed:', err);
         return [];
       }
-      return data as Review[];
     }
   });
 
@@ -92,8 +117,9 @@ export const ProductDetailPage = () => {
         const { error } = await (supabase as any)
           .from('reviews')
           .update({
-            rating: data.rating,
+            ...(reviewRating > 0 && { rating: reviewRating }), // Only include rating if > 0
             comment: data.comment,
+            user_name: user.full_name || user.email.split('@')[0], // Update display name
             updated_at: new Date().toISOString()
           })
           .eq('id', editingReviewId);
@@ -106,8 +132,9 @@ export const ProductDetailPage = () => {
           .insert({
             product_id: id,
             user_id: user.id,
-            rating: data.rating,
-            comment: data.comment
+            ...(reviewRating > 0 && { rating: reviewRating }), // Only include rating if > 0
+            comment: data.comment,
+            user_name: user.full_name || user.email.split('@')[0] // Store display name
           });
         if (error) throw error;
       }
@@ -118,6 +145,11 @@ export const ProductDetailPage = () => {
       setReviewRating(0);
       setReviewComment('');
       setEditingReviewId(null);
+      toast.success(editingReviewId ? 'Review updated successfully!' : 'Review submitted successfully!');
+    },
+    onError: (error) => {
+      console.error('Review submission error:', error);
+      toast.error(`Failed to ${editingReviewId ? 'update' : 'submit'} review: ${error.message}`);
     }
   });
 
@@ -201,6 +233,35 @@ export const ProductDetailPage = () => {
     }
   });
 
+  // Update user_name for existing reviews by current user
+  React.useEffect(() => {
+    if (user && reviews && reviews.length > 0) {
+      const userReviewsWithoutName = reviews.filter(review =>
+        review.user_id === user.id && !review.user_name
+      );
+
+      if (userReviewsWithoutName.length > 0) {
+        // Update these reviews with the user's name
+        const updatePromises = userReviewsWithoutName.map(review =>
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (supabase as any)
+            .from('reviews')
+            .update({
+              user_name: user.full_name || user.email.split('@')[0]
+            })
+            .eq('id', review.id)
+        );
+
+        Promise.all(updatePromises).then(() => {
+          // Refresh reviews after updating
+          queryClient.invalidateQueries({ queryKey: ['reviews', id] });
+        }).catch(err => {
+          console.warn('Failed to update review user names:', err);
+        });
+      }
+    }
+  }, [user, reviews, id, queryClient]);
+
   const handleAddToCart = () => {
     if (!user) {
       toast.error('Please sign in to add products to your cart');
@@ -218,13 +279,13 @@ export const ProductDetailPage = () => {
 
   const handleSubmitReview = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!reviewComment.trim() || reviewRating === 0) return;
+    if (!reviewComment.trim()) return;
     submitReviewMutation.mutate({ rating: reviewRating, comment: reviewComment });
   };
 
   const handleEditReview = (review: Review) => {
     setEditingReviewId(review.id);
-    setReviewRating(review.rating);
+    setReviewRating(review.rating || 0);
     setReviewComment(review.comment);
     window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
   };
@@ -402,30 +463,28 @@ export const ProductDetailPage = () => {
               </h3>
               <form onSubmit={handleSubmitReview}>
                 <div className="mb-3">
-                  <label className="block text-sm font-medium mb-2">Rating</label>
-                  <div className="flex gap-2 items-center">
-                    {[1, 2, 3, 4, 5].map((rating) => {
-                      const faces = ['😡', '😞', '😐', '😊', '😍'];
-                      return (
-                        <button
-                          key={rating}
-                          type="button"
-                          onClick={() => setReviewRating(rating)}
-                          className={`focus:outline-none text-2xl transition-transform hover:scale-110 ${reviewRating === rating ? 'scale-125' : 'opacity-50'
+                  <label className="block text-sm font-medium mb-2">Rating (Optional)</label>
+                  <div className="flex gap-1 items-center">
+                    {[1, 2, 3, 4, 5].map((rating) => (
+                      <button
+                        key={rating}
+                        type="button"
+                        onClick={() => setReviewRating(rating)}
+                        className="focus:outline-none transition-colors hover:scale-110"
+                        aria-label={`Rate ${rating} star${rating > 1 ? 's' : ''}`}
+                      >
+                        <Star
+                          className={`w-6 h-6 ${rating <= reviewRating
+                              ? 'fill-yellow-400 text-yellow-400'
+                              : 'text-gray-300 hover:text-yellow-400'
                             }`}
-                          aria-label={`Rate ${rating}`}
-                        >
-                          {faces[rating - 1]}
-                        </button>
-                      );
-                    })}
-                    <span className="ml-2 text-base font-medium">
-                      {reviewRating > 0 ? `${reviewRating}.0` : 'Select a rating'}
+                        />
+                      </button>
+                    ))}
+                    <span className="ml-3 text-sm text-gray-600 dark:text-gray-400">
+                      {reviewRating > 0 ? `${reviewRating} star${reviewRating > 1 ? 's' : ''}` : 'No rating'}
                     </span>
                   </div>
-                  {reviewRating === 0 && (
-                    <p className="text-xs text-red-500 mt-1">Please select a rating</p>
-                  )}
                 </div>
 
                 <div className="mb-3">
@@ -481,30 +540,35 @@ export const ProductDetailPage = () => {
                 <div className="flex items-start justify-between mb-2">
                   <div>
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="font-semibold text-sm">
-                        {review.user?.full_name || review.user?.email || 'Anonymous'}
+                      <span className="font-semibold text-sm text-gray-900 dark:text-white">
+                        {review.user_id === user?.id
+                          ? (user.full_name || user.email.split('@')[0])
+                          : (review.user_name || review.user?.full_name || review.user?.email || `User ${review.user_id?.slice(0, 8)}...` || 'Anonymous')
+                        }
                       </span>
                       {review.user_id === user?.id && (
-                        <span className="text-xs bg-primary-100 text-primary-700 px-2 py-1 rounded">
+                        <span className="text-xs bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-300 px-2 py-1 rounded">
                           Your Review
                         </span>
                       )}
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="flex text-lg">
-                        {[1, 2, 3, 4, 5].map((rating) => {
-                          const faces = ['😡', '😞', '😐', '😊', '😍'];
-                          return (
-                            <span
+                      {review.rating ? (
+                        <div className="flex gap-1">
+                          {[1, 2, 3, 4, 5].map((rating) => (
+                            <Star
                               key={rating}
-                              className={rating === review.rating ? '' : 'opacity-30'}
-                            >
-                              {faces[rating - 1]}
-                            </span>
-                          );
-                        })}
-                      </div>
-                      <span className="text-xs text-gray-500">
+                              className={`w-4 h-4 ${rating <= review.rating!
+                                  ? 'fill-yellow-400 text-yellow-400'
+                                  : 'text-gray-300'
+                                }`}
+                            />
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-xs text-gray-500 dark:text-gray-400">No rating</span>
+                      )}
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
                         {new Date(review.created_at).toLocaleDateString()}
                       </span>
                     </div>
@@ -530,11 +594,11 @@ export const ProductDetailPage = () => {
                   )}
                 </div>
 
-                <p className="text-gray-700 leading-relaxed text-sm">{review.comment}</p>
+                <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-sm">{review.comment}</p>
               </div>
             ))
           ) : (
-            <div className="card p-4 text-center text-gray-500 text-sm">
+            <div className="card p-4 text-center text-gray-500 dark:text-gray-400 text-sm">
               No reviews yet. Be the first to review this product!
             </div>
           )}
