@@ -112,7 +112,7 @@ describe('ImageUploader', () => {
     fireEvent.change(input, { target: { files: [mockFile] } });
 
     await waitFor(() => {
-      expect(mockToast.success).toHaveBeenCalledWith('1 image(s) uploaded successfully!');
+      expect(mockToast.success).toHaveBeenCalledWith('1 uploaded');
     });
   });
 
@@ -125,7 +125,7 @@ describe('ImageUploader', () => {
     fireEvent.change(input, { target: { files: [mockFile] } });
 
     await waitFor(() => {
-      expect(mockToast.error).toHaveBeenCalledWith('test.txt is not an image file');
+      expect(mockToast.error).toHaveBeenCalledWith('test.txt is not an image');
     });
   });
 
@@ -138,7 +138,7 @@ describe('ImageUploader', () => {
     fireEvent.change(input, { target: { files: [largeFile] } });
 
     await waitFor(() => {
-      expect(mockToast.error).toHaveBeenCalledWith('large.jpg is too large (max 5MB)');
+      expect(mockToast.error).toHaveBeenCalledWith('large.jpg too large (max 5MB)');
     });
   });
 
@@ -180,7 +180,7 @@ describe('ImageUploader', () => {
     });
 
     await waitFor(() => {
-      expect(mockToast.success).toHaveBeenCalledWith('1 image(s) uploaded successfully!');
+      expect(mockToast.success).toHaveBeenCalledWith('1 uploaded');
     });
   });
 
@@ -224,7 +224,7 @@ describe('ImageUploader', () => {
     fireEvent.change(input, { target: { files: [mockFile] } });
 
     await waitFor(() => {
-      expect(mockToast.error).toHaveBeenCalledWith('Failed to upload test.jpg');
+      expect(mockToast.error).toHaveBeenCalledWith('Upload failed: test.jpg');
     });
   });
 
@@ -247,7 +247,7 @@ describe('ImageUploader', () => {
     fireEvent.change(input, { target: { files: [mockFile] } });
 
     await waitFor(() => {
-      expect(mockToast.error).toHaveBeenCalledWith('Failed to save image records');
+      expect(mockToast.error).toHaveBeenCalledWith('Failed to save images');
     });
   });
 
@@ -297,7 +297,7 @@ describe('ImageUploader', () => {
     fireEvent.click(deleteButtons[0]);
 
     await waitFor(() => {
-      expect(mockToast.success).toHaveBeenCalledWith('Image deleted successfully');
+      expect(mockToast.success).toHaveBeenCalledWith('Image deleted');
     });
   });
 
