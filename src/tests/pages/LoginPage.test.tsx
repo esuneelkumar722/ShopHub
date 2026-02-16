@@ -172,7 +172,7 @@ describe('LoginPage', () => {
     const submitButton = screen.getByRole('button', { name: /sign up/i });
 
     fireEvent.change(emailInput, { target: { value: 'newuser@example.com' } });
-    fireEvent.change(passwordInput, { target: { value: 'password123' } });
+    fireEvent.change(passwordInput, { target: { value: 'Password123!' } });
     fireEvent.click(submitButton);
 
     await waitFor(() => {
@@ -188,7 +188,7 @@ describe('LoginPage', () => {
     const supabaseMock = supabase as any;
     supabaseMock.auth.signInWithPassword.mockResolvedValue({
       data: null,
-      error: { message: 'Invalid credentials' },
+      error: new Error('Invalid credentials'),
     });
 
     renderWithProviders(<LoginPage />);
@@ -202,7 +202,7 @@ describe('LoginPage', () => {
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(screen.getByText('An unexpected error occurred')).toBeInTheDocument();
+      expect(screen.getByText('Invalid credentials')).toBeInTheDocument();
     });
   });
 
@@ -211,7 +211,7 @@ describe('LoginPage', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const supabaseMock = supabase as any;
     supabaseMock.auth.signUp.mockResolvedValue({
-      error: { message: 'Email already registered' },
+      error: new Error('Email already registered'),
     });
 
     renderWithProviders(<LoginPage />);
@@ -225,11 +225,11 @@ describe('LoginPage', () => {
     const submitButton = screen.getByRole('button', { name: /sign up/i });
 
     fireEvent.change(emailInput, { target: { value: 'existing@example.com' } });
-    fireEvent.change(passwordInput, { target: { value: 'password123' } });
+    fireEvent.change(passwordInput, { target: { value: 'Password123!' } });
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(screen.getByText('An unexpected error occurred')).toBeInTheDocument();
+      expect(screen.getByText('Email already registered')).toBeInTheDocument();
     });
   });
 
@@ -270,7 +270,14 @@ describe('LoginPage', () => {
   it('shows password requirements hint', () => {
     renderWithProviders(<LoginPage />);
 
-    expect(screen.getByText('At least 6 characters')).toBeInTheDocument();
+    // Switch to sign up mode
+    const toggleButton = screen.getByRole('button', { name: /sign up/i });
+    fireEvent.click(toggleButton);
+
+    const passwordInput = screen.getByPlaceholderText('••••••••');
+    fireEvent.focus(passwordInput);
+
+    expect(screen.getByText('At least 8 characters')).toBeInTheDocument();
   });
 
   it('has required attributes on form inputs', () => {
@@ -281,7 +288,6 @@ describe('LoginPage', () => {
 
     expect(emailInput).toBeRequired();
     expect(passwordInput).toBeRequired();
-    expect(passwordInput).toHaveAttribute('minLength', '6');
   });
   it('prevents form submission with empty fields', () => {
     renderWithProviders(<LoginPage />);
@@ -348,7 +354,7 @@ describe('LoginPage', () => {
     const submitButton = screen.getByRole('button', { name: /sign up/i });
 
     fireEvent.change(emailInput, { target: { value: 'newuser@example.com' } });
-    fireEvent.change(passwordInput, { target: { value: 'password123' } });
+    fireEvent.change(passwordInput, { target: { value: 'Password123!' } });
     fireEvent.click(submitButton);
 
     await waitFor(() => {

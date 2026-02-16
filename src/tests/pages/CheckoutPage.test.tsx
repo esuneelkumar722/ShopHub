@@ -72,10 +72,13 @@ describe('CheckoutPage', () => {
     vi.clearAllMocks();
   });
 
-  it('renders checkout page with shipping form initially', () => {
+  it('renders checkout page with shipping form initially', async () => {
     renderWithProviders(<CheckoutPage />);
 
-    expect(screen.getByText('Checkout')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Checkout')).toBeInTheDocument();
+    });
+
     expect(screen.getByText('Shipping Information')).toBeInTheDocument();
     expect(screen.getByPlaceholderText('John Doe')).toBeInTheDocument();
     expect(screen.getByPlaceholderText('john@example.com')).toBeInTheDocument();
@@ -86,7 +89,11 @@ describe('CheckoutPage', () => {
   it('validates required fields', async () => {
     renderWithProviders(<CheckoutPage />);
 
-    const continueButton = screen.getByRole('button', { name: /continue to payment/i });
+    await waitFor(() => {
+      expect(screen.getByText('Checkout')).toBeInTheDocument();
+    });
+
+    const continueButton = screen.getByRole('button', { name: /continue to review/i });
     fireEvent.click(continueButton);
 
     await waitFor(() => {
@@ -96,6 +103,10 @@ describe('CheckoutPage', () => {
 
   it('shows validation errors for invalid email', async () => {
     renderWithProviders(<CheckoutPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Checkout')).toBeInTheDocument();
+    });
 
     const emailInput = screen.getByPlaceholderText('john@example.com');
     fireEvent.change(emailInput, { target: { value: 'invalid-email' } });
@@ -108,6 +119,10 @@ describe('CheckoutPage', () => {
 
   it('shows validation errors for invalid phone', async () => {
     renderWithProviders(<CheckoutPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Checkout')).toBeInTheDocument();
+    });
 
     const phoneInput = screen.getByPlaceholderText('1234567890');
     fireEvent.change(phoneInput, { target: { value: '123' } });
