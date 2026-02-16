@@ -21,7 +21,7 @@ export const ProductQuickView = ({ product, isOpen, onClose }: ProductQuickViewP
 
   const handleAddToCart = () => {
     addItem(product);
-    toast.success(`${product.name} added to cart!`);
+    toast.success('Added to cart');
   };
 
   return (

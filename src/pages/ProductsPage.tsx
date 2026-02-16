@@ -1,13 +1,13 @@
 import { useState, useCallback, useMemo, useTransition, useRef } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { useSearchParams } from 'react-router-dom';
 import { useEffect } from 'react';
 import type { Product, ProductFilters } from '../types';
 import { fetchProducts, fetchCategories } from '../lib/productsApi';
-import { supabase } from '../lib/supabase';
 import { useCartStore } from '../store/cartStore';
 import { useUserStore } from '../store/userStore';
+import { useWishlist } from '../hooks/useWishlist';
 import { useDebounce } from '../hooks/useDebounce';
 import { ProductCardSkeleton } from '../components/skeleton/ProductCardSkeleton';
 import { ProductQuickView } from '../components/product/ProductQuickView';
@@ -35,7 +35,6 @@ export const ProductsPage = () => {
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const addItem = useCartStore((state) => state.addItem);
   const user = useUserStore((state) => state.user);
-  const queryClient = useQueryClient();
   const filtersRef = useRef(filters);
 
   // Update category and search filters when URL parameters change (for navigation/bookmarks)
@@ -59,73 +58,10 @@ export const ProductsPage = () => {
   // Debounced search value (500ms delay)
   const debouncedSearch = useDebounce(filters.search, 500);
 
-  // Fetch wishlist items
-  const { data: wishlistItems } = useQuery({
-    queryKey: ['wishlist'],
-    queryFn: async () => {
-      if (!user) return [];
-      // Note: Using 'as any' here due to TypeScript inference limitation with Supabase strict typing
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (supabase as any)
-        .from('wishlist')
-        .select('product_id')
-        .eq('user_id', user.id);
-      if (error) throw error;
-      return (data || []).map((item: { product_id: string }) => item.product_id);
-    },
-    enabled: !!user,
-    refetchOnMount: 'always'
-  });
-
-  // Toggle wishlist
-  const toggleWishlist = useMutation({
-    mutationFn: async (productId: string) => {
-      if (!user) return;
-      const isInWishlist = wishlistItems?.includes(productId);
-
-      if (isInWishlist) {
-        const { error } = await supabase
-          .from('wishlist')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('product_id', productId);
-        if (error) throw error;
-      } else {
-        // Note: Using 'as any' here due to TypeScript inference limitation with Supabase strict typing
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { error } = await (supabase as any)
-          .from('wishlist')
-          .insert({ user_id: user.id, product_id: productId });
-        if (error) throw error;
-      }
-    },
-    onMutate: async (productId) => {
-      // Cancel outgoing refetches
-      await queryClient.cancelQueries({ queryKey: ['wishlist'] });
-
-      // Get current data
-      const previousWishlist = queryClient.getQueryData(['wishlist']);
-
-      // Optimistically update
-      queryClient.setQueryData(['wishlist'], (old: string[] | undefined) => {
-        if (!old) return [productId];
-        const isInWishlist = old.includes(productId);
-        return isInWishlist
-          ? old.filter(id => id !== productId)
-          : [...old, productId];
-      });
-
-      return { previousWishlist };
-    },
-    onError: (_err, _productId, context) => {
-      // Rollback on error
-      if (context?.previousWishlist) {
-        queryClient.setQueryData(['wishlist'], context.previousWishlist);
-      }
-    },
-    onSuccess: () => {
-      queryClient.refetchQueries({ queryKey: ['wishlist'] });
-    }
+  // Wishlist functionality
+  const { wishlistItems, toggleWishlist } = useWishlist({
+    requireAuth: false, // Don't throw error for unauthenticated users on products page
+    showToasts: false   // Don't show toasts on products page (handled by individual components)
   });
 
   // useCallback prevents function recreation, keeping reference stable for memoized child components
@@ -283,7 +219,7 @@ export const ProductsPage = () => {
             <div key={product.id} className="card hover:shadow-lg transition-shadow group relative dark:bg-gray-800">
               {user && (
                 <button
-                  onClick={() => toggleWishlist.mutate(product.id)}
+                  onClick={() => toggleWishlist(product.id)}
                   className="absolute top-3 right-3 p-2 bg-white dark:bg-gray-700 rounded-full shadow-md hover:scale-110 transition-transform z-10"
                   title={wishlistItems?.includes(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
                   aria-label={wishlistItems?.includes(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}

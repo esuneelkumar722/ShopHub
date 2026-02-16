@@ -144,7 +144,7 @@ function App() {
               <AppContent />
             </ErrorBoundary>
           </NetworkErrorBoundary>
-          <Toaster position="top-right" richColors closeButton />
+          <Toaster position="top-right" richColors={false} closeButton={false} duration={1000} toastOptions={{ className: 'custom-toast' }} />
         </BrowserRouter>
       </ThemeProvider>
     </QueryClientProvider>

@@ -21,7 +21,7 @@ export const DiscountCodeInput = ({
 
   const validateAndApplyDiscount = async () => {
     if (!code.trim()) {
-      toast.error('Please enter a discount code');
+      toast.error('Enter discount code');
       return;
     }
 
@@ -37,7 +37,7 @@ export const DiscountCodeInput = ({
       const { data, error } = result as { data: DiscountCode[] | null; error: Error | null };
 
       if (error || !data || data.length === 0) {
-        toast.error('Invalid or expired discount code');
+        toast.error('Invalid code');
         setLoading(false);
         return;
       }
@@ -51,27 +51,27 @@ export const DiscountCodeInput = ({
       const validUntil = discountData.valid_until ? new Date(discountData.valid_until) : null;
 
       if (now < validFrom) {
-        toast.error('This discount code is not yet valid');
+        toast.error('Code not valid yet');
         setLoading(false);
         return;
       }
 
       if (validUntil && now > validUntil) {
-        toast.error('This discount code has expired');
+        toast.error('Code expired');
         setLoading(false);
         return;
       }
 
       // Check usage limit
       if (discountData.usage_limit && discountData.used_count >= discountData.usage_limit) {
-        toast.error('This discount code has reached its usage limit');
+        toast.error('Usage limit reached');
         setLoading(false);
         return;
       }
 
       // Check minimum purchase amount
       if (subtotal < discountData.min_purchase_amount) {
-        toast.error(`Minimum purchase of $${discountData.min_purchase_amount.toFixed(2)} required`);
+        toast.error(`Min purchase: $${discountData.min_purchase_amount.toFixed(2)}`);
         setLoading(false);
         return;
       }
@@ -91,10 +91,10 @@ export const DiscountCodeInput = ({
 
       setAppliedDiscount({ code: discountData, amount: discountAmount });
       onDiscountApplied(discountData, discountAmount);
-      toast.success(`Discount code "${discountData.code}" applied! You saved $${discountAmount.toFixed(2)}`);
+      toast.success(`Saved $${discountAmount.toFixed(2)}`);
       setCode('');
     } catch {
-      toast.error('Failed to apply discount code');
+      toast.error('Discount failed');
     } finally {
       setLoading(false);
     }
@@ -103,7 +103,7 @@ export const DiscountCodeInput = ({
   const removeDiscount = () => {
     setAppliedDiscount(null);
     onDiscountRemoved();
-    toast.info('Discount code removed');
+    toast.info('Discount removed');
   };
 
   return (

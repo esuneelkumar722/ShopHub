@@ -20,7 +20,7 @@ export const StripePaymentForm = ({ amount, onSuccess, onCancel }: StripePayment
     e.preventDefault();
 
     if (!stripe || !elements) {
-      toast.error('Stripe has not loaded yet. Please wait.');
+      toast.error('Stripe not loaded yet');
       return;
     }
 
@@ -40,7 +40,7 @@ export const StripePaymentForm = ({ amount, onSuccess, onCancel }: StripePayment
       });
 
       if (error) {
-        toast.error(error.message || 'Payment failed');
+        toast.error('Payment failed');
         setProcessing(false);
         return;
       }
@@ -53,7 +53,7 @@ export const StripePaymentForm = ({ amount, onSuccess, onCancel }: StripePayment
 
       // For now, simulate successful payment
       console.log('Payment Method Created:', paymentMethod);
-      toast.success(`Payment of $${amount.toFixed(2)} processed successfully! (Test Mode)`);
+      toast.success(`Payment: $${amount.toFixed(2)}`);
 
       // Clear the card element
       cardElement.clear();
@@ -65,7 +65,7 @@ export const StripePaymentForm = ({ amount, onSuccess, onCancel }: StripePayment
       }, 1000);
     } catch (err: unknown) {
       console.error('Payment error:', err);
-      toast.error(err instanceof Error ? err.message : 'An error occurred during payment');
+      toast.error('Payment error occurred');
       setProcessing(false);
     }
   };

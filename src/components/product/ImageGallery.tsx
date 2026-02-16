@@ -30,10 +30,10 @@ export const ImageGallery = ({ images, productName }: ImageGalleryProps) => {
   if (images.length === 0) return null;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {/* Main Image */}
       <div
-        className="relative aspect-square bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden group"
+        className="relative aspect-[4/3] bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden group"
         onMouseEnter={() => setIsZoomed(true)}
         onMouseLeave={() => setIsZoomed(false)}
         onMouseMove={handleMouseMove}
@@ -90,14 +90,14 @@ export const ImageGallery = ({ images, productName }: ImageGalleryProps) => {
 
       {/* Thumbnails */}
       {images.length > 1 && (
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-4 gap-1.5">
           {images.map((image, index) => (
             <button
               key={index}
               onClick={() => setSelectedIndex(index)}
               className={`aspect-square rounded-lg overflow-hidden border-2 transition-all focus-visible ${index === selectedIndex
-                  ? 'border-primary-600 dark:border-primary-400'
-                  : 'border-transparent hover:border-gray-300 dark:hover:border-gray-600'
+                ? 'border-primary-600 dark:border-primary-400'
+                : 'border-transparent hover:border-gray-300 dark:hover:border-gray-600'
                 }`}
               aria-label={`View image ${index + 1}`}
               aria-current={index === selectedIndex}

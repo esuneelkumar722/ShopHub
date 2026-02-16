@@ -50,7 +50,7 @@ export const ImageUploader = ({ productId, existingImages = [], onImagesUpdated 
 
       if (uploadError) {
         console.error('Upload error:', uploadError);
-        toast.error(`Failed to upload ${file.name}`);
+        toast.error(`Upload failed: ${file.name}`);
         return null;
       }
 
@@ -62,7 +62,7 @@ export const ImageUploader = ({ productId, existingImages = [], onImagesUpdated 
       return publicUrl;
     } catch (error) {
       console.error('Upload exception:', error);
-      toast.error(`Error uploading ${file.name}`);
+      toast.error(`Upload error: ${file.name}`);
       return null;
     }
   };
@@ -75,11 +75,11 @@ export const ImageUploader = ({ productId, existingImages = [], onImagesUpdated 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       if (!file.type.startsWith('image/')) {
-        toast.error(`${file.name} is not an image file`);
+        toast.error(`${file.name} is not an image`);
         continue;
       }
       if (file.size > 5 * 1024 * 1024) {
-        toast.error(`${file.name} is too large (max 5MB)`);
+        toast.error(`${file.name} too large (max 5MB)`);
         continue;
       }
       validFiles.push(file);
@@ -111,11 +111,11 @@ export const ImageUploader = ({ productId, existingImages = [], onImagesUpdated 
 
       if (error) {
         console.error('Database error:', error);
-        toast.error('Failed to save image records');
+        toast.error('Failed to save images');
       } else {
         const typedImages = (insertedImages || []) as unknown as ProductImage[];
         setImages([...images, ...typedImages]);
-        toast.success(`${successfulUrls.length} image(s) uploaded successfully!`);
+        toast.success(`${successfulUrls.length} uploaded`);
         onImagesUpdated?.();
       }
     }
@@ -151,7 +151,7 @@ export const ImageUploader = ({ productId, existingImages = [], onImagesUpdated 
       if (error) throw error;
 
       setImages(images.filter((img) => img.id !== imageId));
-      toast.success('Image deleted successfully');
+      toast.success('Image deleted');
       onImagesUpdated?.();
     } catch (error) {
       console.error('Delete error:', error);
@@ -217,8 +217,8 @@ export const ImageUploader = ({ productId, existingImages = [], onImagesUpdated 
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${isDragging
-            ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-            : 'border-gray-300 dark:border-gray-600 hover:border-primary-400 dark:hover:border-primary-500'
+          ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
+          : 'border-gray-300 dark:border-gray-600 hover:border-primary-400 dark:hover:border-primary-500'
           } ${uploading ? 'opacity-50 pointer-events-none' : ''}`}
       >
         <input

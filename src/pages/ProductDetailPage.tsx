@@ -3,13 +3,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import type { Product, Review, ProductImage } from '../types';
 import { useCartStore } from '../store/cartStore';
+import { useUserStore } from '../store/userStore';
 import { ProductDetailSkeleton } from '../components/skeleton/ProductDetailSkeleton';
 import { ProductRecommendations } from '../components/product/ProductRecommendations';
 import { ImageGallery } from '../components/product/ImageGallery';
 import { AddToCartButton } from '../components/cart/AddToCartButton';
 import { ShoppingCart, ArrowLeft, Star, Check, Trash2, Edit2, Heart } from 'lucide-react';
 import React, { useState } from 'react';
-import { useUserStore } from '../store/userStore';
+import { useWishlist } from '../hooks/useWishlist';
 import { toast } from 'sonner';
 
 export const ProductDetailPage = () => {
@@ -145,11 +146,11 @@ export const ProductDetailPage = () => {
       setReviewRating(0);
       setReviewComment('');
       setEditingReviewId(null);
-      toast.success(editingReviewId ? 'Review updated successfully!' : 'Review submitted successfully!');
+      toast.success(editingReviewId ? 'Review updated' : 'Review submitted');
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error('Review submission error:', error);
-      toast.error(`Failed to ${editingReviewId ? 'update' : 'submit'} review: ${error.message}`);
+      toast.error(`Failed to ${editingReviewId ? 'update' : 'submit'} review`);
     }
   });
 
@@ -169,109 +170,22 @@ export const ProductDetailPage = () => {
     }
   });
 
-  // Fetch wishlist
-  const { data: wishlistItems } = useQuery({
-    queryKey: ['wishlist'],
-    queryFn: async () => {
-      if (!user) return [];
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (supabase as any)
-        .from('wishlist')
-        .select('product_id')
-        .eq('user_id', user.id);
-      if (error) throw error;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return data.map((item: any) => item.product_id);
-    },
-    enabled: !!user,
-    refetchOnMount: 'always'
+  // Wishlist functionality
+  const { toggleWishlist, isInWishlist } = useWishlist({
+    requireAuth: true,  // Throw error for unauthenticated users on product detail page
+    showToasts: true    // Show toasts for feedback
   });
-
-  // Toggle wishlist mutation
-  const toggleWishlist = useMutation({
-    mutationFn: async (productId: string) => {
-      if (!user) throw new Error('Must be logged in');
-      const isInWishlist = wishlistItems?.includes(productId);
-
-      if (isInWishlist) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { error } = await (supabase as any)
-          .from('wishlist')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('product_id', productId);
-        if (error) throw error;
-      } else {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { error } = await (supabase as any)
-          .from('wishlist')
-          .insert({ user_id: user.id, product_id: productId });
-        if (error) throw error;
-      }
-    },
-    onMutate: async (productId) => {
-      await queryClient.cancelQueries({ queryKey: ['wishlist'] });
-      const previousWishlist = queryClient.getQueryData(['wishlist']);
-
-      queryClient.setQueryData(['wishlist'], (old: string[] | undefined) => {
-        if (!old) return [productId];
-        const isInWishlist = old.includes(productId);
-        return isInWishlist
-          ? old.filter(id => id !== productId)
-          : [...old, productId];
-      });
-
-      return { previousWishlist };
-    },
-    onError: (_err, _productId, context) => {
-      if (context?.previousWishlist) {
-        queryClient.setQueryData(['wishlist'], context.previousWishlist);
-      }
-    },
-    onSuccess: () => {
-      queryClient.refetchQueries({ queryKey: ['wishlist'] });
-    }
-  });
-
-  // Update user_name for existing reviews by current user
-  React.useEffect(() => {
-    if (user && reviews && reviews.length > 0) {
-      const userReviewsWithoutName = reviews.filter(review =>
-        review.user_id === user.id && !review.user_name
-      );
-
-      if (userReviewsWithoutName.length > 0) {
-        // Update these reviews with the user's name
-        const updatePromises = userReviewsWithoutName.map(review =>
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (supabase as any)
-            .from('reviews')
-            .update({
-              user_name: user.full_name || user.email.split('@')[0]
-            })
-            .eq('id', review.id)
-        );
-
-        Promise.all(updatePromises).then(() => {
-          // Refresh reviews after updating
-          queryClient.invalidateQueries({ queryKey: ['reviews', id] });
-        }).catch(err => {
-          console.warn('Failed to update review user names:', err);
-        });
-      }
-    }
-  }, [user, reviews, id, queryClient]);
 
   const handleAddToCart = () => {
     if (!user) {
-      toast.error('Please sign in to add products to your cart');
+      toast.error('Please sign in to add to cart');
       navigate('/login', { state: { from: location.pathname } });
       return;
     }
 
     if (product) {
       addItem(product);
-      toast.success(`${product.name} added to cart!`);
+      toast.success('Added to cart');
       setAdded(true);
       setTimeout(() => setAdded(false), 2000);
     }
@@ -314,7 +228,7 @@ export const ProductDetailPage = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <button
         onClick={() => navigate(-1)}
         className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-6 focus-visible"
@@ -328,19 +242,19 @@ export const ProductDetailPage = () => {
         {/* Product Image Gallery */}
         <div>
           {productImages.length > 0 ? (
-            <div className="w-full max-w-sm mx-auto">
+            <div className="w-full max-w-md mx-auto">
               <ImageGallery
                 images={[product.image_url, ...productImages.map(img => img.image_url)]}
                 productName={product.name}
               />
             </div>
           ) : (
-            <div className="w-full max-w-sm mx-auto">
+            <div className="w-full max-w-md mx-auto">
               <img
                 src={product.image_url}
                 alt={product.name}
                 loading="lazy"
-                className="w-full h-auto max-h-80 object-cover rounded-2xl shadow-lg"
+                className="w-full h-auto max-h-72 object-cover rounded-2xl shadow-lg"
                 onError={(e) => {
                   e.currentTarget.src = 'https://via.placeholder.com/600x600?text=Product+Image';
                 }}
@@ -396,7 +310,7 @@ export const ProductDetailPage = () => {
             <AddToCartButton
               onClick={handleAddToCart}
               disabled={product.stock === 0}
-              className={`flex-1 py-3 rounded-lg font-semibold text-base flex items-center justify-center gap-2 transition-all focus-visible ${added
+              className={`px-8 py-3 rounded-lg font-semibold text-base flex items-center justify-center gap-2 transition-all focus-visible ${added
                 ? 'bg-green-600 text-white hover:bg-green-700'
                 : product.stock > 0
                   ? 'bg-primary-600 text-white hover:bg-primary-700'
@@ -418,12 +332,12 @@ export const ProductDetailPage = () => {
 
             {user && (
               <button
-                onClick={() => product && toggleWishlist.mutate(product.id)}
+                onClick={() => product && toggleWishlist(product.id)}
                 className="p-3 rounded-lg border-2 border-gray-300 dark:border-gray-600 hover:border-red-400 dark:hover:border-red-400 transition-all hover:scale-105 focus-visible"
-                aria-label={wishlistItems?.includes(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
+                aria-label={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
               >
                 <Heart
-                  className={`w-5 h-5 ${wishlistItems?.includes(product.id)
+                  className={`w-5 h-5 ${isInWishlist(product.id)
                     ? 'fill-red-500 text-red-500'
                     : 'text-gray-400'
                     }`}
@@ -435,30 +349,30 @@ export const ProductDetailPage = () => {
       </div>
 
       {/* Additional Info */}
-      <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="card p-4">
-          <h3 className="font-semibold text-base mb-1">Free Shipping</h3>
-          <p className="text-gray-600 text-sm">On orders over $50</p>
+      <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4 max-w-2xl">
+        <div className="card p-3">
+          <h3 className="font-semibold text-sm mb-1">Free Shipping</h3>
+          <p className="text-gray-600 text-xs">On orders over $50</p>
         </div>
-        <div className="card p-4">
-          <h3 className="font-semibold text-base mb-1">Easy Returns</h3>
-          <p className="text-gray-600 text-sm">30-day return policy</p>
+        <div className="card p-3">
+          <h3 className="font-semibold text-sm mb-1">Easy Returns</h3>
+          <p className="text-gray-600 text-xs">30-day return policy</p>
         </div>
-        <div className="card p-4">
-          <h3 className="font-semibold text-base mb-1">Secure Payment</h3>
-          <p className="text-gray-600 text-sm">SSL encrypted checkout</p>
+        <div className="card p-3">
+          <h3 className="font-semibold text-sm mb-1">Secure Payment</h3>
+          <p className="text-gray-600 text-xs">SSL encrypted checkout</p>
         </div>
       </div>
 
       {/* Reviews Section */}
-      <div className="mt-12">
-        <h2 className="text-2xl font-bold mb-6">Customer Reviews</h2>
+      <div className="mt-8">
+        <h2 className="text-xl font-bold mb-4">Customer Reviews</h2>
 
         {/* Review Form */}
         {user ? (
           !userReview || editingReviewId ? (
-            <div className="card mb-6 p-6">
-              <h3 className="text-lg font-semibold mb-3">
+            <div className="card mb-6 p-4 max-w-2xl">
+              <h3 className="text-lg font-semibold mb-4">
                 {editingReviewId ? 'Edit Your Review' : 'Write a Review'}
               </h3>
               <form onSubmit={handleSubmitReview}>
@@ -475,8 +389,8 @@ export const ProductDetailPage = () => {
                       >
                         <Star
                           className={`w-6 h-6 ${rating <= reviewRating
-                              ? 'fill-yellow-400 text-yellow-400'
-                              : 'text-gray-300 hover:text-yellow-400'
+                            ? 'fill-yellow-400 text-yellow-400'
+                            : 'text-gray-300 hover:text-yellow-400'
                             }`}
                         />
                       </button>
@@ -533,10 +447,10 @@ export const ProductDetailPage = () => {
         )}
 
         {/* Reviews List */}
-        <div className="space-y-4">
+        <div className="space-y-3 max-w-2xl">
           {reviews && reviews.length > 0 ? (
             reviews.map((review) => (
-              <div key={review.id} className="card p-4">
+              <div key={review.id} className="card p-3">
                 <div className="flex items-start justify-between mb-2">
                   <div>
                     <div className="flex items-center gap-2 mb-1">
@@ -559,8 +473,8 @@ export const ProductDetailPage = () => {
                             <Star
                               key={rating}
                               className={`w-4 h-4 ${rating <= review.rating!
-                                  ? 'fill-yellow-400 text-yellow-400'
-                                  : 'text-gray-300'
+                                ? 'fill-yellow-400 text-yellow-400'
+                                : 'text-gray-300'
                                 }`}
                             />
                           ))}
@@ -578,14 +492,14 @@ export const ProductDetailPage = () => {
                     <div className="flex gap-2">
                       <button
                         onClick={() => handleEditReview(review)}
-                        className="p-1 text-gray-600 hover:text-primary-600 hover:bg-gray-100 rounded"
+                        className="p-1 text-gray-400 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
                         title="Edit review"
                       >
                         <Edit2 className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => deleteReviewMutation.mutate(review.id)}
-                        className="p-1 text-gray-600 hover:text-red-600 hover:bg-gray-100 rounded"
+                        className="p-1 text-gray-400 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
                         title="Delete review"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -606,10 +520,12 @@ export const ProductDetailPage = () => {
       </div>
 
       {/* Product Recommendations */}
-      <ProductRecommendations
-        currentProductId={product.id}
-        category={product.category}
-      />
+      <div className="mt-6">
+        <ProductRecommendations
+          currentProductId={product.id}
+          category={product.category}
+        />
+      </div>
     </div>
   );
 };
