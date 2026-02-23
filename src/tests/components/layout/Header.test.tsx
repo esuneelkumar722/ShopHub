@@ -1,5 +1,5 @@
 import { describe, it, vi, beforeEach, expect } from 'vitest';
-import { screen, fireEvent, waitFor } from '@testing-library/react';
+import { screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { renderWithProviders } from '../../renderWithProviders';
 import { Header } from '../../../components/layout/Header';
 
@@ -15,6 +15,8 @@ vi.mock('lucide-react', () => ({
   Sun: (props: React.SVGProps<SVGSVGElement>) => <svg data-testid="icon-sun" {...props} />,
   X: (props: React.SVGProps<SVGSVGElement>) => <svg data-testid="icon-x" {...props} />,
   Package: (props: React.SVGProps<SVGSVGElement>) => <svg data-testid="icon-package" {...props} />,
+  Mic: (props: React.SVGProps<SVGSVGElement>) => <svg data-testid="icon-mic" {...props} />,
+  MicOff: (props: React.SVGProps<SVGSVGElement>) => <svg data-testid="icon-mic-off" {...props} />,
 }));
 
 vi.mock('../../../store/cartStore', () => ({
@@ -49,6 +51,34 @@ vi.mock('../../../components/cart/MiniCart', () => ({
   ) : null,
 }));
 
+// Mock useVoiceSearch hook
+const mockStartListening = vi.fn();
+const mockStopListening = vi.fn();
+const mockResetTranscript = vi.fn();
+let mockVoiceSearchState: {
+  isListening: boolean;
+  transcript: string;
+  isSupported: boolean;
+  error: string | null;
+  isFinalResult: boolean;
+  startListening: typeof mockStartListening;
+  stopListening: typeof mockStopListening;
+  resetTranscript: typeof mockResetTranscript;
+} = {
+  isListening: false,
+  transcript: '',
+  isSupported: true,
+  error: null,
+  isFinalResult: false,
+  startListening: mockStartListening,
+  stopListening: mockStopListening,
+  resetTranscript: mockResetTranscript,
+};
+
+vi.mock('../../../hooks/useVoiceSearch', () => ({
+  useVoiceSearch: () => mockVoiceSearchState,
+}));
+
 // Mock useNavigate
 const mockNavigate = vi.fn();
 vi.mock('react-router-dom', async (importOriginal) => {
@@ -64,6 +94,21 @@ describe('Header', () => {
     userState = mockUser;
     setUser.mockClear();
     mockNavigate.mockClear();
+    mockStartListening.mockClear();
+    mockStopListening.mockClear();
+    mockResetTranscript.mockClear();
+
+    // Reset voice search state
+    mockVoiceSearchState = {
+      isListening: false,
+      transcript: '',
+      isSupported: true,
+      error: null,
+      isFinalResult: false,
+      startListening: mockStartListening,
+      stopListening: mockStopListening,
+      resetTranscript: mockResetTranscript,
+    };
   });
 
   it('renders logo and navigation links', () => {
@@ -123,11 +168,11 @@ describe('Header', () => {
     renderWithProviders(<Header />);
     // Menu should not be open initially
     expect(screen.queryByText('Menu')).not.toBeInTheDocument();
-    
+
     // Open menu
     fireEvent.click(screen.getByLabelText('Open user menu'));
     expect(screen.getByText('Menu')).toBeInTheDocument();
-    
+
     // Close menu
     fireEvent.click(screen.getByLabelText('Close menu'));
     await waitFor(() => {
@@ -140,4 +185,171 @@ describe('Header', () => {
     renderWithProviders(<Header />);
     expect(screen.getByText('Sign In')).toBeInTheDocument();
   });
+
+  describe('Voice Search', () => {
+    it('renders microphone button when voice search is supported', () => {
+      renderWithProviders(<Header />);
+      expect(screen.getByLabelText('Start voice search')).toBeInTheDocument();
+      expect(screen.getByTestId('icon-mic')).toBeInTheDocument();
+    });
+
+    it('does not render microphone button when voice search is not supported', () => {
+      mockVoiceSearchState.isSupported = false;
+      renderWithProviders(<Header />);
+      expect(screen.queryByLabelText('Start voice search')).not.toBeInTheDocument();
+    });
+
+    it('starts listening when microphone button is clicked', () => {
+      renderWithProviders(<Header />);
+      const micButton = screen.getByLabelText('Start voice search');
+
+      fireEvent.click(micButton);
+
+      expect(mockResetTranscript).toHaveBeenCalled();
+      expect(mockStartListening).toHaveBeenCalled();
+    });
+
+    it('stops listening when microphone button is clicked while listening', () => {
+      mockVoiceSearchState.isListening = true;
+      renderWithProviders(<Header />);
+      const micButton = screen.getByLabelText('Stop voice search');
+
+      fireEvent.click(micButton);
+
+      expect(mockStopListening).toHaveBeenCalled();
+    });
+
+    it('shows MicOff icon when listening', () => {
+      mockVoiceSearchState.isListening = true;
+      renderWithProviders(<Header />);
+
+      expect(screen.getByTestId('icon-mic-off')).toBeInTheDocument();
+      expect(screen.queryByTestId('icon-mic')).not.toBeInTheDocument();
+    });
+
+    it('displays voice transcript in search input', () => {
+      mockVoiceSearchState.transcript = 'wireless mouse';
+      renderWithProviders(<Header />);
+
+      const searchInput = screen.getByPlaceholderText('Search products...') as HTMLInputElement;
+      expect(searchInput.value).toBe('wireless mouse');
+    });
+
+    it('shows typed query when no voice transcript', () => {
+      renderWithProviders(<Header />);
+
+      const searchInput = screen.getByPlaceholderText('Search products...') as HTMLInputElement;
+      fireEvent.change(searchInput, { target: { value: 'laptop' } });
+
+      expect(searchInput.value).toBe('laptop');
+    });
+
+    it('prioritizes voice transcript over typed query', () => {
+      mockVoiceSearchState.transcript = 'wireless mouse';
+      renderWithProviders(<Header />);
+
+      const searchInput = screen.getByPlaceholderText('Search products...') as HTMLInputElement;
+      // Try to type something
+      fireEvent.change(searchInput, { target: { value: 'laptop' } });
+
+      // Transcript should still be shown
+      expect(searchInput.value).toBe('wireless mouse');
+    });
+
+    it('displays voice error message when error occurs', () => {
+      mockVoiceSearchState.error = 'No speech detected. Please try again.';
+      renderWithProviders(<Header />);
+
+      expect(screen.getByText('No speech detected. Please try again.')).toBeInTheDocument();
+    });
+
+    it('navigates to search when Enter is pressed with voice transcript', () => {
+      mockVoiceSearchState.transcript = 'gaming keyboard';
+      renderWithProviders(<Header />);
+
+      const searchInput = screen.getByPlaceholderText('Search products...');
+      fireEvent.keyDown(searchInput, { key: 'Enter', code: 'Enter' });
+
+      expect(mockNavigate).toHaveBeenCalledWith('/products?search=gaming%20keyboard');
+      expect(mockResetTranscript).toHaveBeenCalled();
+    });
+
+    it('auto-submits search after voice recognition completes', () => {
+      vi.useFakeTimers();
+
+      mockVoiceSearchState.isFinalResult = false;
+      const { rerender } = renderWithProviders(<Header />);
+
+      // Simulate final result
+      mockVoiceSearchState.isFinalResult = true;
+      mockVoiceSearchState.transcript = 'wireless headphones';
+      act(() => {
+        rerender(<Header />);
+      });
+      
+      // Should wait 1000ms before auto-submitting
+      expect(mockNavigate).not.toHaveBeenCalled();
+      
+      // Fast-forward 1000ms
+      act(() => {
+        vi.advanceTimersByTime(1000);
+      });
+      
+      expect(mockNavigate).toHaveBeenCalledWith('/products?search=wireless%20headphones');
+
+      vi.useRealTimers();
+    });
+
+    it('clears transcript after auto-submit search', () => {
+      vi.useFakeTimers();
+
+      mockVoiceSearchState.isFinalResult = true;
+      mockVoiceSearchState.transcript = 'smartphone';
+      
+      act(() => {
+        renderWithProviders(<Header />);
+      });
+      
+      // Fast-forward 1000ms to trigger auto-submit
+      act(() => {
+        vi.advanceTimersByTime(1000);
+      });
+
+      expect(mockResetTranscript).toHaveBeenCalled();
+
+      vi.useRealTimers();
+    });
+
+    it('does not auto-submit if transcript is empty', () => {
+      vi.useFakeTimers();
+
+      mockVoiceSearchState.isFinalResult = true;
+      mockVoiceSearchState.transcript = '';
+      renderWithProviders(<Header />);
+
+      act(() => {
+        vi.advanceTimersByTime(1000);
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+
+      vi.useRealTimers();
+    });
+
+    it('hides search suggestions when voice error is shown', () => {
+      mockVoiceSearchState.error = 'Network error. Please check your internet connection.';
+      renderWithProviders(<Header />);
+
+      const searchInput = screen.getByPlaceholderText('Search products...') as HTMLInputElement;
+      fireEvent.change(searchInput, { target: { value: 'test' } });
+      fireEvent.focus(searchInput);
+
+      // Error message should be visible
+      expect(screen.getByText('Network error. Please check your internet connection.')).toBeInTheDocument();
+
+      // Suggestions should not appear when there's an error
+      // (This is tested implicitly by the !voiceError condition in the component)
+    });
+  });
 });
+

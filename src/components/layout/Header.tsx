@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingCart, User, Search, Shield, Heart } from 'lucide-react';
+import { ShoppingCart, User, Search, Shield, Heart, Mic, MicOff } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useCartStore } from '../../store/cartStore';
 import { useUserStore } from '../../store/userStore';
 import { supabase } from '../../lib/supabase';
 import { useAdmin } from '../../hooks/useAdmin';
+import { useVoiceSearch } from '../../hooks/useVoiceSearch';
 import { DarkModeToggle } from '../ui/DarkModeToggle';
 import { MiniCart } from '../cart/MiniCart';
 import { useQuery } from '@tanstack/react-query';
@@ -56,16 +57,22 @@ export const Header = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
 
+  // Voice search
+  const { isListening, transcript, isSupported, error: voiceError, isFinalResult, startListening, stopListening, resetTranscript } = useVoiceSearch();
+
+  // Use transcript as search query when available, otherwise use the typed search query
+  const effectiveSearchQuery = transcript || searchQuery;
+
   // Fetch search suggestions
   const { data: suggestions = [] } = useQuery({
-    queryKey: ['search-suggestions', searchQuery],
+    queryKey: ['search-suggestions', effectiveSearchQuery],
     queryFn: async () => {
-      if (searchQuery.length < 2) return [];
+      if (effectiveSearchQuery.length < 2) return [];
 
       const { data, error } = await supabase
         .from('products')
         .select('name')
-        .ilike('name', `%${searchQuery}%`)
+        .ilike('name', `%${effectiveSearchQuery}%`)
         .limit(8);
 
       if (error) {
@@ -77,28 +84,52 @@ export const Header = () => {
       const uniqueNames = [...new Set((data as { name: string }[]).map(item => item.name))];
       return uniqueNames.slice(0, 5);
     },
-    enabled: searchQuery.length >= 2,
+    enabled: effectiveSearchQuery.length >= 2,
   });
 
   // Show suggestions when they become available
   useEffect(() => {
-    if (suggestions.length > 0 && searchQuery.length >= 2) {
-      // eslint-disable-next-line
+    if (suggestions.length > 0 && effectiveSearchQuery.length >= 2) {
       setShowSuggestions(true);
     }
-  }, [suggestions, searchQuery]);
+  }, [suggestions, effectiveSearchQuery]);
 
   const handleSearchSubmit = () => {
-    if (searchQuery.trim()) {
-      navigate(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
+    const queryToSearch = effectiveSearchQuery.trim();
+    if (queryToSearch) {
+      navigate(`/products?search=${encodeURIComponent(queryToSearch)}`);
       setSearchQuery(''); // Clear after navigation
       setShowSuggestions(false);
+      resetTranscript(); // Clear transcript too
+    }
+  };
+
+  // Auto-submit search when voice recognition completes
+  useEffect(() => {
+    if (isFinalResult && transcript.trim()) {
+      // Wait 1000ms to give user time to see what was recognized
+      const autoSearchTimer = setTimeout(() => {
+        handleSearchSubmit();
+      }, 1000);
+
+      return () => clearTimeout(autoSearchTimer);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isFinalResult, transcript]);
+
+  const handleMicClick = () => {
+    if (isListening) {
+      stopListening();
+    } else {
+      resetTranscript();
+      startListening();
     }
   };
 
   const handleSuggestionClick = (suggestion: string) => {
     setSearchQuery(suggestion);
     setShowSuggestions(false);
+    resetTranscript(); // Clear transcript
     // Auto-submit the search
     navigate(`/products?search=${encodeURIComponent(suggestion)}`);
     setSearchQuery('');
@@ -139,17 +170,51 @@ export const Header = () => {
                 <input
                   type="text"
                   placeholder="Search products..."
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-gray-800 dark:text-white"
+                  className="w-full pl-10 pr-12 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-gray-800 dark:text-white"
                   aria-label="Search products"
-                  value={searchQuery}
+                  value={effectiveSearchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={handleSearchKeyDown}
-                  onFocus={() => searchQuery.length >= 2 && setShowSuggestions(true)}
+                  onFocus={() => effectiveSearchQuery.length >= 2 && setShowSuggestions(true)}
                   onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
                 />
 
+                {/* Microphone Button */}
+                {isSupported && (
+                  <button
+                    onClick={handleMicClick}
+                    className={`absolute right-3 top-1/2 transform -translate-y-1/2 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded p-1 transition-all ${isListening
+                      ? 'text-red-500 animate-pulse'
+                      : 'text-gray-400 hover:text-primary-500'
+                      }`}
+                    aria-label={isListening ? 'Stop voice search' : 'Start voice search'}
+                    title={isListening ? 'Stop listening' : 'Voice search'}
+                  >
+                    {isListening ? (
+                      <MicOff className="w-5 h-5" />
+                    ) : (
+                      <Mic className="w-5 h-5" />
+                    )}
+                  </button>
+                )}
+
+                {/* Voice Error Message */}
+                <AnimatePresence>
+                  {voiceError && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute top-full left-0 right-0 bg-red-50 dark:bg-red-900/20 border border-red-300 dark:border-red-600 rounded-lg shadow-lg z-50 mt-1 p-3"
+                    >
+                      <p className="text-sm text-red-700 dark:text-red-400">{voiceError}</p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
                 {/* Autocomplete Suggestions */}
-                {showSuggestions && suggestions.length > 0 && (
+                {showSuggestions && suggestions.length > 0 && !voiceError && (
                   <div className="absolute top-full left-0 right-0 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto mt-1">
                     {suggestions.map((suggestion, index) => (
                       <button
